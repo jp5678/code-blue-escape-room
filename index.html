@@ -3135,8 +3135,8 @@ const ROOMS = {
         <canvas class="ecg" id="ecg" width="600" height="110" aria-hidden="true"></canvas>
         <div class="vitals" id="vitals"></div>
         <div class="mon-foot">
-          <div class="mon-chip locked" id="newsChip">NEWS2 <b>🔒</b><br><span class="small">계산 모듈 잠김</span></div>
-          <div class="mon-chip flicker" id="esmChip">ESM 경보 <b>⚠</b><br><span class="small">입력 끊김 · 깜빡임</span></div>
+          <div class="mon-chip locked" id="newsChip">NEWS2(조기경보점수) <b>🔒</b><br><span class="small">계산 모듈 잠김</span></div>
+          <div class="mon-chip flicker" id="esmChip">ESM(패혈증 예측 AI) 경보 <b>⚠</b><br><span class="small">입력 끊김 · 깜빡임</span></div>
         </div>
         <div class="deter" title="환자 악화 진행도"><i id="deterBar" style="width:0%"></i></div>
       </div>
@@ -3786,12 +3786,12 @@ function updateMonitor() {
   if (news2Unlocked()) {
     const r = CORE.news2Response(v);
     chip.className = 'mon-chip lv-' + r.level;
-    chip.replaceChildren('NEWS2 ', h('b', {}, String(r.total)), h('br'), h('span', { class: 'small' }, r.label));
+    chip.replaceChildren('NEWS2(조기경보점수) ', h('b', {}, String(r.total)), h('br'), h('span', { class: 'small' }, r.label));
   }
   const esm = $('#esmChip');
   if (esmFixed()) {
     esm.className = 'mon-chip lv-medium';
-    esm.replaceChildren('ESM 경보 ', h('b', {}, '●'), h('br'), h('span', { class: 'small' }, '입력 복구 · 보조 정보'));
+    esm.replaceChildren('ESM(패혈증 예측 AI) 경보 ', h('b', {}, '●'), h('br'), h('span', { class: 'small' }, '입력 복구 · 보조 정보'));
   }
   $('#monitor').classList.toggle('alarm', points >= 4);
 
