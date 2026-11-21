@@ -98,11 +98,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .badge.red { color: var(--danger); background: var(--danger-soft); border-color: #FCA5A5; }
 .topbar .badge { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .35); }
 
-/* EMR 상태등: 헤더에서 띄워 밝은 바탕 위에 표시. 평상시 6px 더스티 로즈, 잠금 시 6px 빨강 깜빡임 */
+/* EMR 상태등: 헤더에서 띄워 밝은 바탕 위에 표시. 평상시 6px 차분한 초록(정상), 잠금 시 6px 빨강 깜빡임 */
 .emr-status { max-width: 1880px; margin: 12px auto 0; padding: 0 1.25rem; display: flex; align-items: center; gap: .55rem; font-size: .8rem; color: var(--muted); }
-.emr-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex: none; }
-.emr-text { white-space: nowrap; font-weight: 600; }
-.emr-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--accent); }
+.emr-dot { width: 10px; height: 10px; border-radius: 50%; background: #2F855A; flex: none; }
+.emr-text { white-space: nowrap; font-weight: 600; color: #276749; }
+.emr-bar { flex: 1; height: 6px; border-radius: 3px; background: #2F855A; }
 body.emr-locked .emr-dot, body.emr-locked .emr-bar { background: #DC2626; animation: emrLockBlink 1s steps(2) infinite; }
 body.emr-locked .emr-text { color: #B91C1C; font-weight: 700; }
 @keyframes emrLockBlink { 50% { background: #6B0F0F; } }
