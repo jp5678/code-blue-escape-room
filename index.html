@@ -92,6 +92,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .icon-btn:hover { background: var(--surface-3); }
 .topbar .icon-btn { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); color: #fff; }
 .topbar .icon-btn:hover { background: rgba(255, 255, 255, .24); }
+.manual-link { text-decoration: none; white-space: nowrap; font-weight: 700; }
+.topbar .manual-link { background: var(--gold); color: #2B1F05; border-color: var(--gold); }
+.topbar .manual-link:hover { background: #D6B97E; }
 .badge { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .55rem; border-radius: 999px; font-size: .75rem; border: 1px solid var(--line-strong); background: var(--surface-3); color: var(--primary); white-space: nowrap; }
 .badge.gold { color: var(--amber); background: var(--gold-soft); border-color: #E0CB9B; }
 .badge.red { color: var(--danger); background: var(--danger-soft); border-color: #FCA5A5; }
@@ -3145,6 +3148,7 @@ const ROOMS = {
   <span class="badge hidden" id="modeBadge"></span>
   <div class="stat" title="남은 시간(힌트·사건 페널티 포함)"><span class="k">남은 시간</span><span class="v" id="timer">--:--</span></div>
   <div class="stat" title="사용한 힌트 수"><span class="k">힌트</span><span class="v" id="hintCount">0</span></div>
+  <a class="icon-btn manual-link" href="manual.html" target="_blank" rel="noopener" title="사용 설명서 (새 탭)">📘 설명서</a>
   <button class="icon-btn" id="muteBtn" type="button" aria-pressed="false" title="음소거 (M)">🔊</button>
   <button class="icon-btn hidden" id="teacherBtn" type="button" title="교수자 메뉴">🎓 교수자</button>
 </header>
@@ -3166,7 +3170,7 @@ const ROOMS = {
       </div>
     </section>
     <section class="minimap glass" aria-label="병동 현황판(평면도)">
-      <div class="panel-title"><span>📋 7병동 현황판</span><span class="small">초록 = 해제 · 노랑 = 현재</span></div>
+      <div class="panel-title"><span>📋 7병동 현황판</span><span class="small">✓ = 해제 · 골드 = 현재</span></div>
       <div id="minimap"></div>
     </section>
   </aside>
@@ -4707,14 +4711,14 @@ function renderStart() {
   const hero = h('section', { class: 'hero glass' },
     h('span', { class: 'badge gold' }, DATA.meta.subtitle),
     h('h2', { style: 'margin-top:.6rem' }, DATA.meta.title),
+    h('p', {}, h('a', { class: 'btn gold manual-link', href: 'manual.html', target: '_blank', rel: 'noopener' }, '📘 사용 설명서 보기')),
     h('p', { class: 'lead' }, '야간 근무 중 7병동 EMR이 사이버 공격 의심으로 잠겼다. 712호 ', h('b', {}, '김○○ 님(72세 남, 폐렴 입원 3일차)'),
       '의 활력징후는 점점 나빠지고, 패혈증 AI 경보(ESM)는 울렸다 꺼지기를 반복한다. 정보간호사 대응팀이 되어 각 공간의 시스템을 복구하고, 마지막에 담당의에게 SBAR로 보고하라.'),
     h('ul', { class: 'small' },
       h('li', {}, '오른쪽 모니터의 환자 상태는 시간이 지나거나 오답을 내면 악화됩니다.'),
       h('li', {}, '힌트는 3단계(넛지 → 부분 공개 → 거의 정답), 사용 시 1·2·3분 페널티가 붙습니다.'),
       h('li', {}, '퍼즐을 풀면 디브리핑 카드와 단서 카드를 얻습니다. 진행 상황은 이 기기에 자동 저장됩니다.'),
-      h('li', {}, '키보드: Tab 이동 · Enter 제출 · H 힌트 · M 음소거')),
-    h('p', {}, h('a', { class: 'btn ghost', href: 'manual.html', target: '_blank', rel: 'noopener' }, '📘 사용 설명서 보기')));
+      h('li', {}, '키보드: Tab 이동 · Enter 제출 · H 힌트 · M 음소거')));
   const roster = buildRosterForm(() => start());
   const form = h('section', { class: 'puzzle glass' },
     h('h3', {}, '대응팀 등록'),
