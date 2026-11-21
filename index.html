@@ -4702,7 +4702,8 @@ const ROSTER = Object.freeze({
   maxMembers: 5,
   clsPattern: /^[0-9A-Za-z가-힣\- ]{1,10}$/,
   sidPattern: /^[0-9]{4,12}$/,
-  namePattern: /^[가-힣A-Za-z][가-힣A-Za-z ·]{0,18}[가-힣A-Za-z]$/
+  // 한글 또는 영문 이름. 영문 이름의 띄어쓰기·하이픈·아포스트로피·마침표 허용(예: Jong-Pil Jeong, O'Brien, Kim J.)
+  namePattern: /^[가-힣A-Za-z][가-힣A-Za-z .'·-]{0,38}[가-힣A-Za-z.]$/
 });
 
 const normSpace = (v) => String(v || '').trim().replace(/\s+/g, ' ');
@@ -4741,7 +4742,7 @@ function buildRosterForm(onEnter) {
         h('label', { class: 'sr-only', for: sidId }, (i + 1) + '번째 조원 학번'),
         h('input', { type: 'text', id: sidId, 'data-k': 'sid', inputmode: 'numeric', maxlength: 14, placeholder: '학번', autocomplete: 'off', value: m.sid }),
         h('label', { class: 'sr-only', for: nameId }, (i + 1) + '번째 조원 성명'),
-        h('input', { type: 'text', id: nameId, 'data-k': 'name', maxlength: 20, placeholder: '성명', autocomplete: 'off', value: m.name }),
+        h('input', { type: 'text', id: nameId, 'data-k': 'name', maxlength: 40, placeholder: '성명(한글 또는 영문)', autocomplete: 'off', autocapitalize: 'words', spellcheck: 'false', value: m.name }),
         values.length > 1
           ? h('button', { type: 'button', class: 'icon-btn', 'aria-label': (i + 1) + '번째 조원 삭제', onclick: () => removeRow(i) }, '✕')
           : h('span', {}));
@@ -4779,7 +4780,7 @@ function buildRosterForm(onEnter) {
       const name = normSpace(nameEl.value);
       if (i > 0 && !sid && !name) continue; // 비워 둔 추가 행은 무시
       if (!ROSTER.sidPattern.test(sid)) return { ok: false, error: (i + 1) + '번째 조원의 학번을 숫자 4~12자리로 입력하세요.', focus: sidEl };
-      if (!ROSTER.namePattern.test(name)) return { ok: false, error: (i + 1) + '번째 조원의 성명을 2~20자(한글·영문)로 입력하세요.', focus: nameEl };
+      if (!ROSTER.namePattern.test(name)) return { ok: false, error: (i + 1) + '번째 조원의 성명을 한글 또는 영문 2~40자로 입력하세요. (영문은 띄어쓰기·하이픈(-)·아포스트로피(\')·마침표(.) 사용 가능, 숫자 불가)', focus: nameEl };
       if (members.some((m) => m.sid === sid)) return { ok: false, error: '학번 ' + sid + '이(가) 중복 입력되었습니다.', focus: sidEl };
       members.push(Object.freeze({ sid, name }));
     }
