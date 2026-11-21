@@ -81,7 +81,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand { display: flex; align-items: center; gap: .6rem; margin-right: auto; min-width: 0; }
 .brand .logo { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: #fff; color: var(--primary); font-weight: 900; font-size: 1.2rem; }
 .brand h1 { font-size: 1.45rem; letter-spacing: .01em; margin: 0; white-space: nowrap; color: #fff; }
-.brand .team:empty { display: none; }
 .brand .team { color: #F2DDE2; font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ward-chip { font-size: .78rem; padding: .15rem .6rem; border-radius: 999px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .3); white-space: nowrap; }
 .stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; background: rgba(0, 0, 0, .18); padding: .2rem .6rem; border-radius: 10px; }
@@ -3115,10 +3114,11 @@ const ROOMS = {
     <div class="logo" aria-hidden="true">✚</div>
     <div style="min-width:0">
       <h1 id="gameTitle">Code Blue : 잠긴 병동</h1>
-      <div class="team" id="teamLabel"></div>
+      <div class="team" id="teamLabel">AI융합 간호정보학 방탈출</div>
     </div>
   </div>
   <span class="ward-chip">🏥 7병동 간호스테이션 · 야간 근무</span>
+  <span class="badge hidden" id="teamBadge" title="대응팀"></span>
   <span class="badge hidden" id="modeBadge"></span>
   <div class="stat" title="남은 시간(힌트·사건 페널티 포함)"><span class="k">남은 시간</span><span class="v" id="timer">--:--</span></div>
   <div class="stat" title="사용한 힌트 수"><span class="k">힌트</span><span class="v" id="hintCount">0</span></div>
@@ -4839,7 +4839,9 @@ function updateHeader() {
   timer.classList.toggle('over', !S.finished && rem < 0);
   timer.classList.toggle('low', !S.finished && rem >= 0 && rem < 300);
   hc.textContent = String(totalHints());
-  $('#teamLabel').textContent = S.team + ' 대응팀';
+  const tb = $('#teamBadge');
+  tb.classList.remove('hidden');
+  tb.textContent = '👥 ' + S.team;
   const badge = $('#modeBadge');
   badge.classList.remove('hidden');
   badge.textContent = (S.mode === 'full' ? '전체 모드' : '수업 모드') + ' · ' + (S.diff === 'adv' ? '심화' : '기본');
