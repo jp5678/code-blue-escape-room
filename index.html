@@ -253,6 +253,8 @@ legend { font-weight: 700; margin-bottom: .4rem; color: var(--primary); }
 .segbtn:disabled { cursor: default; }
 /* 순서 맞추기 */
 .order-list { list-style: none; margin: .2rem 0 0; padding: 0; display: grid; gap: .4rem; }
+.order-list.pyramid { display: flex; flex-direction: column-reverse; align-items: center; }
+.order-list.pyramid .order-item { min-width: 0; }
 .order-item { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .6rem; align-items: center; padding: .45rem .6rem; border-radius: 10px; border: 1px solid var(--line-strong); background: #fff; cursor: grab; font-size: .93rem; }
 .order-no { width: 1.7rem; height: 1.7rem; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: #fff; font: 700 .85rem var(--mono); }
 .order-btns { display: flex; gap: .25rem; }
@@ -669,7 +671,8 @@ const ROOMS = {
       {
        "id": "dikw",
        "type": "order",
-       "label": "아래(1) → 위(4) 순서",
+       "stack": "bottomUp",
+       "label": "피라미드 아래(1·자료) → 위(4·지혜)",
        "options": [
         {
          "v": "o485506732f",
@@ -4124,7 +4127,10 @@ function orderField(puz, key, f, val, disabled, onChange) {
   let cur = valid ? val.slice() : seededShuffle(ids, sessionSeed() + '|order|' + key + '|' + f.id);
   if (!valid) onChange(cur); // 처음 섞인 순서도 답으로 저장(움직이지 않고 제출해도 채점 가능)
   const text = Object.fromEntries(f.options.map((o) => [o.v, o.t]));
-  const list = h('ol', { class: 'order-list' });
+  const bottomUp = f.stack === 'bottomUp'; // 1번이 맨 아래(피라미드)
+  const list = h('ol', { class: 'order-list' + (bottomUp ? ' pyramid' : '') });
+  const upTo = (i) => (bottomUp ? i + 1 : i - 1);   // 화면에서 위쪽에 놓인 칸
+  const downTo = (i) => (bottomUp ? i - 1 : i + 1); // 화면에서 아래쪽에 놓인 칸
   const commit = (next) => { cur = next; onChange(cur); draw(); };
   const swap = (i, j) => {
     if (disabled || j < 0 || j >= cur.length) return;
@@ -4134,12 +4140,13 @@ function orderField(puz, key, f, val, disabled, onChange) {
   };
   function draw() {
     list.replaceChildren(...cur.map((v, i) => {
-      const li = h('li', { class: 'order-item', draggable: disabled ? null : 'true' },
+      const width = bottomUp ? 'width:' + (100 - i * 9) + '%' : null; // 위로 갈수록 좁아지는 피라미드
+      const li = h('li', { class: 'order-item', style: width, draggable: disabled ? null : 'true' },
         h('span', { class: 'order-no' }, String(i + 1)),
         h('span', { class: 'order-text' }, text[v]),
         h('span', { class: 'order-btns' },
-          h('button', { type: 'button', class: 'icon-btn', 'aria-label': (i + 1) + '번째 카드 위로', disabled: disabled || i === 0, onclick: () => swap(i, i - 1) }, '▲'),
-          h('button', { type: 'button', class: 'icon-btn', 'aria-label': (i + 1) + '번째 카드 아래로', disabled: disabled || i === cur.length - 1, onclick: () => swap(i, i + 1) }, '▼')));
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': (i + 1) + '번째 카드 위로', disabled: disabled || upTo(i) < 0 || upTo(i) >= cur.length, onclick: () => swap(i, upTo(i)) }, '▲'),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': (i + 1) + '번째 카드 아래로', disabled: disabled || downTo(i) < 0 || downTo(i) >= cur.length, onclick: () => swap(i, downTo(i)) }, '▼')));
       li.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', String(i)));
       li.addEventListener('dragover', (e) => e.preventDefault());
       li.addEventListener('drop', (e) => {
