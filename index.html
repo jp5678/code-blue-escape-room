@@ -205,6 +205,41 @@ legend { font-weight: 700; margin-bottom: .4rem; color: var(--primary); }
 .hint { padding: .55rem .8rem; border-radius: 10px; background: var(--gold-soft); border: 1px dashed var(--gold); font-size: .92rem; }
 .hint b { color: var(--amber); }
 
+/* ----- 다양한 응답 형식 ----- */
+/* 카드 분류 */
+.bucket-hint { margin: 0 0 .4rem; }
+.bucket-board { display: grid; gap: .6rem; }
+.bucket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .6rem; }
+.bucket { border: 1.5px dashed var(--line-strong); border-radius: 12px; background: var(--surface-2); min-height: 96px; display: flex; flex-direction: column; transition: background .15s, border-color .15s; }
+.bucket.tray { background: #fff; border-style: solid; border-color: var(--line); min-height: 64px; }
+.bucket.over { border-color: var(--primary-2); background: #F6E9EC; }
+.bucket-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; width: 100%; padding: .35rem .6rem; border: 0; border-bottom: 1px solid var(--line); background: var(--surface-3); color: var(--primary); font-weight: 700; font-size: .85rem; text-align: left; border-radius: 11px 11px 0 0; cursor: default; }
+.bucket.tray .bucket-head { background: var(--surface-2); color: var(--muted); }
+.bucket-head.armed { cursor: pointer; background: var(--gold-soft); color: var(--amber); }
+.bucket-head.armed:hover { background: #EFE2C6; }
+.bucket-head .count { font-family: var(--mono); font-size: .78rem; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 0 .45rem; color: var(--muted); }
+.bucket-body { display: flex; flex-wrap: wrap; gap: .4rem; padding: .5rem; flex: 1; align-content: flex-start; }
+.sort-card { display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; text-align: left; padding: .35rem .6rem; border-radius: 8px; border: 1px solid var(--line-strong); background: #fff; font-size: .86rem; line-height: 1.4; cursor: grab; box-shadow: 0 1px 2px rgba(42, 45, 51, .08); max-width: 100%; }
+.sort-card:hover { border-color: var(--primary-2); }
+.sort-card.picked { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200, 169, 106, .35); background: var(--gold-soft); }
+.sort-card:disabled { cursor: default; opacity: .85; }
+.sort-card .from { font-size: .7rem; color: var(--amber); }
+/* 버튼 선택 */
+.seg-row { grid-template-columns: minmax(0, 1fr) auto; }
+.seg-label { font-size: .92rem; }
+.segbtns { display: flex; flex-wrap: wrap; gap: .3rem; justify-content: flex-end; }
+.segbtn { padding: .28rem .65rem; border-radius: 999px; border: 1px solid var(--line-strong); background: #fff; color: var(--ink); font-size: .84rem; cursor: pointer; }
+.segbtn:hover { border-color: var(--primary-2); }
+.segbtn.on { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 700; }
+.segbtn:disabled { cursor: default; }
+/* 순서 맞추기 */
+.order-list { list-style: none; margin: .2rem 0 0; padding: 0; display: grid; gap: .4rem; }
+.order-item { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .6rem; align-items: center; padding: .45rem .6rem; border-radius: 10px; border: 1px solid var(--line-strong); background: #fff; cursor: grab; font-size: .93rem; }
+.order-no { width: 1.7rem; height: 1.7rem; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: #fff; font: 700 .85rem var(--mono); }
+.order-btns { display: flex; gap: .25rem; }
+.order-btns .icon-btn { padding: .15rem .45rem; font-size: .8rem; }
+.order-btns .icon-btn:disabled { opacity: .35; }
+
 /* ----- 자료 화면 ----- */
 table.data, table.matrix, table.vt, table.score { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: .85rem; background: #fff; }
 table.data th, table.data td, table.matrix th, table.matrix td, table.vt th, table.vt td, table.score th, table.score td { border: 1px solid var(--line); padding: .35rem .5rem; text-align: center; }
@@ -299,6 +334,9 @@ table.res th { color: var(--primary); }
   .layout { padding: .75rem; gap: .75rem; }
   .side { grid-template-columns: 1fr; }
   .field-row { grid-template-columns: 1fr; gap: .35rem; }
+  .seg-row { grid-template-columns: 1fr; }
+  .segbtns { justify-content: flex-start; }
+  .bucket-grid { grid-template-columns: 1fr 1fr; }
   .staff { grid-template-columns: repeat(2, 1fr); }
   .topbar { padding: .5rem .75rem; gap: .6rem; }
   .brand h1 { font-size: 1rem; }
@@ -327,7 +365,7 @@ const ROOMS = {
  "meta": {
   "title": "코드 블루: 잠긴 병동",
   "subtitle": "AI융합 간호정보학 · 학기 종합 복습 방탈출",
-  "footer": "정종필 교수 · 청암대학교 간호학과",
+  "footer": "제프리 교수 · 청암대학교 간호학과",
   "salt": "CBNI-2026-v1"
  },
  "config": {
@@ -491,10 +529,11 @@ const ROOMS = {
      "id": "A",
      "title": "대응팀 역할 배정",
      "chapter": "Ch02",
-     "kind": "매칭",
+     "kind": "카드 분류",
+     "layout": "buckets",
      "shuffleFields": true,
      "optionOrderPerField": true,
-     "prompt": "대응팀 4개 역할에 꼭 필요한 <b>핵심역량 카드</b>를 하나씩 짝지으세요. (교재 2장: 3대 리터러시 · TRACE · Human-in-the-Loop)",
+     "prompt": "대응팀 <b>역할 카드 4장</b>을 그 역할에 꼭 필요한 <b>핵심역량 상자</b>에 하나씩 넣으세요. (교재 2장: 3대 리터러시 · TRACE · Human-in-the-Loop)",
      "fields": [
       {
        "id": "data",
@@ -602,116 +641,42 @@ const ROOMS = {
     },
     {
      "id": "B",
-     "title": "패러다임 전환 카드",
+     "title": "자료에서 지혜로 (DIKW)",
      "chapter": "Ch01",
-     "kind": "매칭",
-     "shuffleFields": true,
-     "optionOrderPerField": true,
-     "prompt": "과거 보건의료의 모습이 AI 시대에 <b>무엇으로 바뀌는지</b> 4P 의학과 DX·AX 개념으로 짝지으세요.",
+     "kind": "순서 맞추기",
+     "prompt": "김○○ 님의 호흡수 기록이 판단으로 바뀌는 과정입니다. 카드 4장을 <b>DIKW 피라미드의 아래 단계(자료)부터 위 단계(지혜)까지</b> 순서대로 놓으세요.",
      "fields": [
       {
-       "id": "p1",
-       "type": "select",
-       "label": "병이 생긴 뒤에야 치료를 시작한다",
+       "id": "dikw",
+       "type": "order",
+       "label": "아래(1) → 위(4) 순서",
        "options": [
         {
-         "v": "ocf542adab0",
-         "t": "예측·예방 (Predictive·Preventive)"
+         "v": "o485506732f",
+         "t": "「02:00 호흡수 25회/분」이라는 측정값"
         },
         {
-         "v": "o99ec8037b5",
-         "t": "개인 맞춤 (Personalized)"
+         "v": "oe6b02ff315",
+         "t": "「호흡수 25회/분은 정상 범위보다 빠르다(빈호흡)」는 사실"
         },
         {
-         "v": "o4fe7e9d4b7",
-         "t": "참여 (Participatory)"
+         "v": "o0751ae5d24",
+         "t": "「빈호흡·발열·혈압 저하가 함께 나타나면 패혈증 악화를 의심하는 패턴」"
         },
         {
-         "v": "o335887f715",
-         "t": "AI전환 (AX)"
+         "v": "oa0e06007be",
+         "t": "「지금 직접 사정하고 담당의에게 SBAR로 보고한다」는 최종 판단"
         }
        ],
-       "h": "9e8f4aeddb0dc63f1c62e8bdbc556b735a59a1b51a3e06629a1bd472b7b69554"
-      },
-      {
-       "id": "p2",
-       "type": "select",
-       "label": "모든 환자에게 같은 표준 치료를 적용한다",
-       "options": [
-        {
-         "v": "ocf542adab0",
-         "t": "예측·예방 (Predictive·Preventive)"
-        },
-        {
-         "v": "o99ec8037b5",
-         "t": "개인 맞춤 (Personalized)"
-        },
-        {
-         "v": "o4fe7e9d4b7",
-         "t": "참여 (Participatory)"
-        },
-        {
-         "v": "o335887f715",
-         "t": "AI전환 (AX)"
-        }
-       ],
-       "h": "1b011412ec2891604cd06554f13e4efcd8e5eb41ce74707c05fb36f1d9d4caf3"
-      },
-      {
-       "id": "p3",
-       "type": "select",
-       "label": "의료진이 결정하고 환자는 따르기만 한다",
-       "options": [
-        {
-         "v": "ocf542adab0",
-         "t": "예측·예방 (Predictive·Preventive)"
-        },
-        {
-         "v": "o99ec8037b5",
-         "t": "개인 맞춤 (Personalized)"
-        },
-        {
-         "v": "o4fe7e9d4b7",
-         "t": "참여 (Participatory)"
-        },
-        {
-         "v": "o335887f715",
-         "t": "AI전환 (AX)"
-        }
-       ],
-       "h": "816b9502f676e7519b6c8d8a1c05afd38eed2f71064e4eaaa1e312086b6ed629"
-      },
-      {
-       "id": "p4",
-       "type": "select",
-       "label": "종이 기록을 EMR로 옮기는 데서 멈춘다 (DX)",
-       "options": [
-        {
-         "v": "ocf542adab0",
-         "t": "예측·예방 (Predictive·Preventive)"
-        },
-        {
-         "v": "o99ec8037b5",
-         "t": "개인 맞춤 (Personalized)"
-        },
-        {
-         "v": "o4fe7e9d4b7",
-         "t": "참여 (Participatory)"
-        },
-        {
-         "v": "o335887f715",
-         "t": "AI전환 (AX)"
-        }
-       ],
-       "h": "7556e038e6499cc61484bf1752afc42d77f523826876463ac7fe52109bcf82bb"
+       "h": "8fd0b883102241a01be2784fcfe48305b6be7e2bc2997d55919e48322055804c"
       }
      ],
      "hintsX": [
-      "NESBFv6gQuQBGhCrhRSHvWujRbfn6Y1EwwcwUHctRE0oXeD6xoXfLWWOTvCoj6vdxFG4diMA4Tx/aj0g24Dp0nPFzMgSWgBII0MLWJgr5g7MMPUM/sruTmXm7ARjQ8RSNpt+RCMsAuYI8tL/aJz1hOprNlG3",
-      "NESBFv5+ol0BGghm/DTzy1APjtHFW0Yl23dKeSSHO8paKd6yUgT2Djn9Y6/yntmBiHoGdwA8yAEH+mhV1MCb3NbMwdLZPRTe7zcn+g==",
-      "NESBFv7QSuwGExyqtw2GpEtvDreuUP7mSwAtQHA6XE0vTsD8zaD2EB02h1LylulKw2u+dhcIyTkjNiVZbMCb3Bqc86tcbYSNszRhastz/XZxxY3IPB7oVlHhzSxqQ/pTPpB7Qz8YDA=="
+      "NESBFv7QW4+6bALSMMkKVJKrQq3TIsVDQstEYg6HmQOiqhp7H1B09ec+KruNzdreBtbEHAeEaOX8rempKEtgZBqJx6xyTI1G4SYZ9CTxBIY+6f0M2tfpbkkldFjLM4hSSfdtLV83quAWzhc=",
+      "NESBFv54h0AGKzxm/RjfzHcejt/UT41F/8tKbDdLTv0udeg2krqNcSqa6jvykdFKw36Ndgs0yC4v+m90/MChzByd+2ASaCCMtjBmQe+4nVDSaEhUXbukYz6/4FjdKo9dXfB4DJo=",
+      "NESBFv54hWgGGCRm/C3+y0A3RZb/6Y1j3Qc7ZLxKXMUpQdz645A9di6WKpCFCkmAmE4GdjIkzwAONhlwp42ZbB2C86xuVkj7h4BmQdN00GJxaHV1kMKcHV+YdF7xLIhLYTsfDzRRupdx9LyedzT0vc2p"
      ],
-     "debriefX": "jmc1VmWrZ8UW91it4nJS4KNJ8VsNtFpKqEWt8DYeE2gcn5ZNSW+JRWc9PXOmhP1paeAfwhhOcnGTeH+po7yc/eI3lFvj8eXdmvXkL2RRWey2rq8SvnxUPGGgVpjVtEjVPOYBzx3ckW7eHKxp05ppMeoVVjsDTwl2uUqytg2ScnUnut33j3xLHctQ0/b9QWCB3AEBrEwPdO9yMcHilAplMdnJJYmMYsGiodzCWS1AFor9CvWDmJpOWI1DHW9bGg2OhHtO9EZAZ5De2PxRY5W6kZnU0AlCqNSfy7/YpQ8Mu238As+xGXE/ETzbSLsp+EKfpit8zNdNR94cDINHsliLuUqVi3VQRsjVjgXysHG0jysUpaMud2o5/uA3UGStUj2bJMTyOiN3JE+hNp8tgvVp7l1DguLm7PbPaUVtQBH21kTgidMV8qpW6xukAv/7sgnifyRSMTT/koCZSIZLhePM0nYQCxYWObDA2UQMrdZdjaE90YaqN/Sz9bz4Py8jaqI3Nz2vOm6rRXuYylxolehdSGMNf5U+lirkNPB6OWt8zJIwPzUHS+JDWJJoo/omFtP963kG/Uj07ql9JcvwBHdsYoAH4p+osFCKu3rVSA0NHEmCvRkTBOwVUu0FugCN+dGK/OTYSqeJ0z6TNVId6VOOWrVG5nqwQxSJBHMb8q8pLVbHrOuwTdUoCXpImSE3gz4GS+tfK4FuEf9qPIIrilnGIiGs0fKoLvM5VX8l5cjs6VoykeXFWiZs4jq7wXgZk5uKzAKo2lPp9EgUwKbbzJICuxVLDfym7pW6/8Cnxuxl+ok5P/EiTsXTkbsGJ8P1ldXOVlhj1j3QO6ojY/bRazZzFMWr9ifG3xQHlx+3VqP7BSvsrdeHEFgOoB9/8MA5itTOB1k44jNNt+XtKqkzCFXtzgvSl7SCl/5yHtHAYb4oYg3prohkRvkqUQ0nsHpiLyyhNYnDV+JTl7mOFMY4fUBv2NxJFGKybUH3bfB/GarjIxF4cNoyz5kJeyb/dC//hcaS5NdJxmKSp0ON6tCvreny8ed1k6XbfGsHIOdqmOhzXc0bWYfmSdTGmO0hDtf7ltvr3FrUGA1KgJkEZYpLbpE/EB470AatyAGlTZRc5mFcvp7wW1BA9RaCysg5i3JJi/ew8H2xLzN88VhDCMSS21OM2QVknJf24+TSXPEaP/byBwY7H0o6FSV0ZNJBXZGqnU06XAPhqKTxkBH2hU7zMDxb4RIfj088u94Xmrh4l/XASu0vg/trAdNhMrfs6O01/FAkWkqfZtITmGLl1R2Hi9/x4HWG8TbkfOdFuJN/FCxJ4ZU6h+KjnpdbvGpBwhKoJcvTJ7jusaBbd98gz+7aDy1hgG0="
+     "debriefX": "DRnbjakIqCqlbP173LTnqT5useBog/BlMJt35XT2RUchlMu5j01LQG62NWrbL1AL1aMJXlxx1kmpgHQpsRR+K31gd0m94R3mckb3GNYjJvlPJo03Oyfzmp5aqjKuvjqvQAkYW/7GIxhqMPH0IQbBRHY9ydmDwYVa9fPiJmIYdeMJK78tUJiPbF9v39VnfVzCNxfiTx8rpeb2Q1UIaOQmNXa/MQfyvgPekKcG+gBKQ/NcZmer+046X7tp101t2112VvIjRXLO2reu1eFLhDrUuGKukFucBo2Nx5vuluWNfi0WdIp3nKUQx3peADiWPTy2KxFJsOOc6xeXgWIUk+1mI1P64+cRwl4PX2qNtDOTRsO3j9UQLG8XykiLeopF7M0Vjjfn9TemWKBWc+YGfsGXXXpwWYSq7sVPdz+8N09OWg9NesWYtg1J7WVP8A+vxT71z/ccgY9Dlr6+bbxCQbaa1pvBNm1yJl+WL68poPAbR7VOpd0R4adSl+dt5QJ7qfp8DXevItMuFogljlEdroudh71xc0O34kLR8gTIRCyletV4ZAlYDe1Z/PFhdL4UOfUNwVVQ1jN8Md14Oth6clgNmHXDt6jS3MJonjj1D9Utv576aU2IxH8g2kwxL+XdrcbGyMD9S8Q57BK835p0Cv2M82lmSBJ+vdp5z3pLQXD7GwxC96irHmKzenm5HUssQP5MPIWDBA6nKvupU9Y2qyVixdK6kOz0I0T52E1i9Hk3ZPIVaaaCz+E8e2PwLO0cQvj8NsQcuLQBLDPDEghBdHy0qZEhbcCqpkdPp1r+7eUXLoHSL93cG47rdIDXOCI4Z9Cr4/QJxLreg1T7rds2L1ALrzfXrcJ+FgrDKx5Nj5E/Y1lyDuctYsQNaLqLy1ty8VJFyRrfJLfKV8VC9VXDI3rC7J5AYV+kGqtYKTAef0PZzGHH8QQZT4ZQWshDJV2TOCnDrP29ryQfsmWgJYJMYhuUPr8E7LliiO2LO3slPv5QmzCbpvUtQ9TczypBAQU2ZJamjf4hpSgrArVRya1dV2dcW7H1Q17TTbypvVTn1K8Nmba7IImfrjsXzOVNVl9L8RyGlHxqwsV1x8f9y0zOXcuEiVlfwm6qEUBexD6i3qUYlccw0vLAVesARTuKukNomVOCFxA9bjyL596wbZ5UbyYVajFBmHuVNOWez2tXQ3zAh5okCaSe5x6M+DLyqIKvAml1uRgmZCeskrOyZn95rdsjDBPexI6RKdVi0F+aDFjEZHGYxwWTIFed6RkUDLnqhcfcR0lUAf4eiLBjKypZpdhvcxIzJkBPGP1lBCMhTVoTvgkopA1zG5Q33gtk8+IuFLojj7XDkqeRNedFAghV/PQ50ZwO8MJTKi315bNG9InK4W8k4U9rRbsbpXJ8aeanNHaihKp98oaljAg61ey7rQamtwMgUuDQ/AihLXALJliXZT88KP7CcpenmmIn4D7zB7z82dov"
     }
    ]
   },
@@ -900,28 +865,11 @@ const ROOMS = {
       },
       {
        "id": "code",
-       "type": "select",
+       "type": "text",
        "adv": true,
-       "label": "[심화] 「호흡수」의 LOINC 코드",
-       "options": [
-        {
-         "v": "o2bf42534d0",
-         "t": "9279-1"
-        },
-        {
-         "v": "oe26a3f38c6",
-         "t": "8867-4"
-        },
-        {
-         "v": "o84ba9a0fcd",
-         "t": "8480-6"
-        },
-        {
-         "v": "oba8422c84e",
-         "t": "8310-5"
-        }
-       ],
-       "h": "ad91eb0555a2a8c4c0418d22488d020b58a76cbc9ac506b2409dab67d3169830"
+       "label": "[심화] 「호흡수」의 LOINC 코드를 직접 입력",
+       "placeholder": "예: 1234-5",
+       "h": "eb68fc352204e87c7729f28aa0a621c43aafb6f6d9585c8b5128e8cd81f75be4"
       }
      ],
      "hintsX": [
@@ -935,7 +883,8 @@ const ROOMS = {
      "id": "C",
      "title": "FHIR 리소스 조립",
      "chapter": "Ch04",
-     "kind": "배치",
+     "kind": "카드 분류",
+     "layout": "buckets",
      "shuffleFields": true,
      "prompt": "데이터 카드 8장을 알맞은 <b>HL7 FHIR 리소스</b>에 넣으세요.",
      "fields": [
@@ -1154,9 +1103,10 @@ const ROOMS = {
      "id": "A",
      "title": "상용 AI에 넣기 전 비식별화",
      "chapter": "Ch07",
-     "kind": "분류",
+     "kind": "카드 분류",
+     "layout": "buckets",
      "shuffleFields": true,
-     "prompt": "김○○ 님 사례를 <b>상용 생성형 AI</b>에 넣어 요약하려 합니다. 교재 5·7장의 원칙에 따라 각 항목을 <b>삭제 / 일반화 / 그대로 사용</b> 중 하나로 처리하세요.",
+     "prompt": "김○○ 님 사례를 <b>상용 생성형 AI</b>에 넣어 요약하려 합니다. 교재 5·7장의 원칙에 따라 항목 카드를 <b>삭제 / 일반화 / 그대로 사용</b> 상자로 분류하세요.",
      "fields": [
       {
        "id": "i1",
@@ -1350,7 +1300,7 @@ const ROOMS = {
      "id": "B",
      "title": "편향의 뿌리 찾기",
      "chapter": "Ch06",
-     "kind": "분류",
+     "kind": "버튼 선택",
      "shuffleFields": true,
      "prompt": "특정 집단에서 AI 성능이 낮았던 사례 4개입니다. 교재 6장의 <b>알고리즘 편향 4유형</b> 중 주된 원인을 고르세요.",
      "fields": [
@@ -1376,6 +1326,7 @@ const ROOMS = {
          "t": "레이블 편향"
         }
        ],
+       "render": "segmented",
        "h": "9e00bb7d68f70205bad51a99686f2e9454fcb56d66a8467b50fdde79600b61f0"
       },
       {
@@ -1400,6 +1351,7 @@ const ROOMS = {
          "t": "레이블 편향"
         }
        ],
+       "render": "segmented",
        "h": "22c22ca46335303303202fa1def3935116c4417321a03c0afcf594b2fc54a735"
       },
       {
@@ -1424,6 +1376,7 @@ const ROOMS = {
          "t": "레이블 편향"
         }
        ],
+       "render": "segmented",
        "h": "608fd183e47259d0a0f14e015a3989e1d8db8e6667858ee49e12ce6ff3f29c94"
       },
       {
@@ -1448,6 +1401,7 @@ const ROOMS = {
          "t": "레이블 편향"
         }
        ],
+       "render": "segmented",
        "h": "ee5a781d35a6527ba3f2fc59c26b11bda6d3d11da6620e1583ce3179fbc5bc16"
       }
      ],
@@ -1670,6 +1624,7 @@ const ROOMS = {
        "id": "news",
        "type": "select",
        "fixedOrder": true,
+       "render": "segmented",
        "label": "NEWS2 ≥5 최초 시각",
        "options": [
         {
@@ -1707,6 +1662,7 @@ const ROOMS = {
        "id": "qsofa",
        "type": "select",
        "fixedOrder": true,
+       "render": "segmented",
        "label": "qSOFA ≥2 최초 시각",
        "options": [
         {
@@ -1824,9 +1780,10 @@ const ROOMS = {
      "id": "C",
      "title": "야간 인력 재배치",
      "chapter": "Ch09",
-     "kind": "배치",
+     "kind": "카드 분류",
+     "layout": "buckets",
      "shuffleFields": true,
-     "prompt": "김○○ 님이 악화되어 환자분류(중증도) 점수가 올랐습니다. 아래 <b>규칙을 모두 지키도록</b> 환자 8명을 간호사 4명에게 배정하세요.<ul class=\"rules\"><li>간호사 1인당 환자 2명, 중증도 점수 합 <b>5점 이하</b></li><li>악화 중인 김○○ 님은 최고 경력자(김RN)가 맡고, 김RN의 다른 환자는 <b>1점 이하</b></li><li>신규 간호사(최RN)는 <b>3점 이상</b> 환자와 <b>MRSA 격리</b> 환자를 맡지 않는다</li><li>심실세동 후 관찰 환자(최○○)는 <b>ACLS 이수자</b>가 맡는다</li><li>섬망·낙상 고위험 환자(한○○)는 <b>경력 3년 초과</b> 간호사가 맡는다</li></ul>",
+     "prompt": "김○○ 님이 악화되어 환자분류(중증도) 점수가 올랐습니다. 아래 <b>규칙을 모두 지키도록</b> 환자 카드 8장을 간호사 4명의 상자에 배정하세요.<ul class=\"rules\"><li>간호사 1인당 환자 2명, 중증도 점수 합 <b>5점 이하</b></li><li>악화 중인 김○○ 님은 최고 경력자(김RN)가 맡고, 김RN의 다른 환자는 <b>1점 이하</b></li><li>신규 간호사(최RN)는 <b>3점 이상</b> 환자와 <b>MRSA 격리</b> 환자를 맡지 않는다</li><li>심실세동 후 관찰 환자(최○○)는 <b>ACLS 이수자</b>가 맡는다</li><li>섬망·낙상 고위험 환자(한○○)는 <b>경력 3년 초과</b> 간호사가 맡는다</li></ul>",
      "view": {
       "kind": "staff"
      },
@@ -2063,7 +2020,7 @@ const ROOMS = {
      "id": "A",
      "title": "데이터 정제",
      "chapter": "Ch12",
-     "kind": "분류",
+     "kind": "버튼 선택",
      "prompt": "패혈증 연구 데이터셋 10행입니다. 각 행을 <b>정상 / 결측치 / 이상치 / 중복</b>으로 분류하세요.",
      "view": {
       "kind": "html",
@@ -2073,6 +2030,7 @@ const ROOMS = {
       {
        "id": "row1",
        "type": "select",
+       "render": "segmented",
        "label": "1행",
        "options": [
         {
@@ -2097,6 +2055,7 @@ const ROOMS = {
       {
        "id": "row2",
        "type": "select",
+       "render": "segmented",
        "label": "2행",
        "options": [
         {
@@ -2121,6 +2080,7 @@ const ROOMS = {
       {
        "id": "row3",
        "type": "select",
+       "render": "segmented",
        "label": "3행",
        "options": [
         {
@@ -2145,6 +2105,7 @@ const ROOMS = {
       {
        "id": "row4",
        "type": "select",
+       "render": "segmented",
        "label": "4행",
        "options": [
         {
@@ -2169,6 +2130,7 @@ const ROOMS = {
       {
        "id": "row5",
        "type": "select",
+       "render": "segmented",
        "label": "5행",
        "options": [
         {
@@ -2193,6 +2155,7 @@ const ROOMS = {
       {
        "id": "row6",
        "type": "select",
+       "render": "segmented",
        "label": "6행",
        "options": [
         {
@@ -2217,6 +2180,7 @@ const ROOMS = {
       {
        "id": "row7",
        "type": "select",
+       "render": "segmented",
        "label": "7행",
        "options": [
         {
@@ -2241,6 +2205,7 @@ const ROOMS = {
       {
        "id": "row8",
        "type": "select",
+       "render": "segmented",
        "label": "8행",
        "options": [
         {
@@ -2265,6 +2230,7 @@ const ROOMS = {
       {
        "id": "row9",
        "type": "select",
+       "render": "segmented",
        "label": "9행",
        "options": [
         {
@@ -2289,6 +2255,7 @@ const ROOMS = {
       {
        "id": "row10",
        "type": "select",
+       "render": "segmented",
        "label": "10행",
        "options": [
         {
@@ -2861,7 +2828,8 @@ const ROOMS = {
      "id": "A",
      "title": "SBAR 보고",
      "chapter": "Ch13",
-     "kind": "배치",
+     "kind": "카드 분류",
+     "layout": "buckets",
      "isSbar": true,
      "shuffleFields": true,
      "prompt": "단서 카드 7장을 <b>S·B·A·R</b> 칸에 배치하세요. 보고에 넣으면 안 되는 카드는 <b>「보고에서 제외」</b>로 보내세요.",
@@ -3134,7 +3102,7 @@ const ROOMS = {
  ],
  "teacher": {
   "check": "ac9ea3595b8908f062fb3e6854f9c13a29227dc7a11da8189a89e0bc0ce89b2d",
-  "blob": "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"
+  "blob": "4JsIPGOZLy2Doyd6WAVHcRHAtTh2V7Z4Da66RyYfN3qxFDljsEAtZrOL5rEhXhTT1gEasrB7n+ROOin1B1KWoQYBj8qxRw/CKZ9AWoDDjptrSN6ekr79rJJ50WkNYtvfZgBK7S2deVO/rAGPzBWwkvi++ayE9rxcb3dgOOwLmXO1Xz+POzwhO5KKdf8XEzj6Niu2e635BYhhfNvS8s+gmMHFlrK//UdV9UsGbBwyFC/WVn0F66VZCJKivC5mBpbY2mmk+gLm/yBeXigSutNuaPDIpUQ/VEY3Q+1dJftfjVL0tGwEIzdQW4dw16wcsqiIfkKD6GlQhzsO14J/VZsudYa1ZNToiK4Z5cZSnKkkypYVmXipMMfp7GS9HatYOvwOANlvpPQuP7RdwaAQ2OdqWn/qbSVpLAg/prk4rCQBBW0Qj31EVobL92z5nu93u0LBXnUa7Onu/KqCv9U7HKxkNyupSVa+2J8g+7Mr9GMiJ04FqpTtAstnAdhTJv4WAe0C40eNVSo5qJ96D0a2CDOS4JdL5e+LplTm0gHSyxF5XEMjgcU3eAPJIS20CGdFGjeMq3pJxJ6FXV9pzoNT2gbK/U1mgau5T2vDtl4/J9MGSQojrd4KWr8YLiabOS0uj3wGy8t0TSI0Q37ggpcWw7S2Bpl0ACm8bMdOIaEttOpxs8SJJQ4yh5bpYGwbs2a1xhie5of44W0+rljr7Xkw5RthRuDul+JACFw0iDOKPpF0e1m9ff4x7puZ55gwMFpq6o0tV8Ahnwg7WlEsvMSMQsEvV1/4Vufjbw2ngm7TmNti89BnduXHB4PMgjTEftNhFMcYIlbvirmvLo+aK5Ni9qOsYhi2pqN5lccTu1SLH6wl2EQvsUosswOhnYM3lH5+OZ1vGpw95uAAgJXJG9PiIO3oaU042OG99qxU3dL7CQSR03OWmvsUq+5yQJA3cBtBk4T76f0BH2a4yfB1KK1cOPkQ1w3uBpOSYLjqOGb2sU6VhM7v/uzNSnqKXRGkOKwk/Su2oUL5t/6ULzFuV/pUT6SHOBjKh/nDVUvUVho37RLgShXUA57EuqSvdIf9ltDvNr2y2PnZJdDsjvSZSAn4BfIHL0XnpEtU8+FCd6p8Evwkt3iyHmC0lo/AIKCqnTqVpAvKgCTwDCKvx/zsKFfxg7SpOmnQyf/E8Fx11tWqwKKgRVYMj5WoyJMYQkTs6JI+6jHg55XcOE2P6Cx2kiw8pMZeX4ELMeG2zutaDuZkb+DbCa8ODATTAfAZjteTr/UhiWCqT6gkeqrjohp/kZbwUFzCbuSIWs3AvGhkOeReUHsLmCzrZfFk4HxWadiEFGQaJ7wnLp6PPQHCxDeRZt14vjZujxAmY51VaYEO8q+YkXakY2fH4OqbGruObxbJqQXZbR64rCyJuqOYsoqEENJHVD2btCr0dNV6as1uL5l0e98mOyC9Y5MG3kRRfY24qyCA3VAhtNW9qxnZSWqo69DykyOYA2/gPo5LHNAR3BgK1lH5rRUYhLnv4e0oNYzF22kipv9OUUghL3fS8sSHEwNwS8ybFV3KFGI5gyctRGlSZQKJ6aPKHJOPKfrKdIUwo9AV7SXO0mNncpX9W7TehxHMGN2AgubCk9Ix517tPTr/aCoDmYg97iO78UW6SDalwvf0dAeHYT8tixzBTr1w14F7D03aALFMeTWb4KT5R5hxhoDAJiA4P6k6xUzEqTt+K/GHg6+8AyaiX81VUTBad+YM4FdwdEUo4REetlHZXXqtWzq5w8HjlIbxPpBSc52DgCr+ntCK08rW1I0f0Uqa59J/sFxVMQAZn7O70n0fUIupMXFhNBcOYAkew5lyvLfy49aqbbeF19WSimdEQsgTTWy3qy+wodrkHtTFbyEa4QN3HFSgs863NA6ue4pVPgvyBituhUga63/yjfZHBLjISNkOhb+0MHS8IIuA2MB1+hAoJjuw6K9VRoR/yjeaygkz3nTuz1uEHQqqRSfUPTn9RGUzXK7bLRyNURcBiRpJVHE4SA0ii6Tnsh6JnHqObmJOg5iiocJkK9rwUOo9ADJ9J4weMFyhr6ZKSJxnftbPum84j5eXz1dfVgZfpUwgJFEZhjktp2qexMWMlKyIf5IuCC7SOSX32S2MsA60LJbuUuc/JFYayr+sYTzxiF92AqUB1pCZxcMN3fm4/1g1V+xNNb6GBjtXoAXB90EqGdXw2A+5mzCH2p0MXIZVdh6n9n0tcxR+V6DSGA54tkymBjMf4+7C+FdTHd4fscgHa6j4ZlTk2AvEtsPexEUO6xLMH1eDByJSxGa65FpvsKTh8tV7quhBCD4qGC2gm+ebQebCyAvrIy/gev2rduBwCvN7MqfKMwD/hUb1Lx9ChF9hsyYc"
  }
 };
 </script>
@@ -3177,7 +3145,7 @@ const ROOMS = {
     </section>
   </aside>
 </div>
-<footer class="foot" id="footer">정종필 교수 · 청암대학교 간호학과</footer>
+<footer class="foot" id="footer">제프리 교수 · 청암대학교 간호학과</footer>
 <div id="modalRoot"></div>
 
 <script>
@@ -3289,6 +3257,8 @@ const ROOMS = {
     switch (field.type) {
       case 'checks':
         return (Array.isArray(value) ? value.slice() : []).map(String).sort().join(',');
+      case 'order': // 순서가 답이므로 정렬하지 않는다
+        return (Array.isArray(value) ? value : []).map(String).join('>');
       case 'number': {
         if (value === '' || value === null || value === undefined) return '';
         const n = Number(String(value).trim().replace(',', '.'));
@@ -3407,6 +3377,8 @@ const ROOMS = {
     // 정규화
     check('checks 정규화(순서 무관)', CORE.canonField({ type: 'checks' }, ['e5', 'e3']), 'e3,e5');
     check('number 정규화', CORE.canonField({ type: 'number' }, ' 33.0 '), '33');
+    check('order 정규화(순서 유지)', CORE.canonField({ type: 'order' }, ['b', 'a', 'c']), 'b>a>c');
+    check('order 는 순서가 다르면 다른 값', CORE.canonField({ type: 'order' }, ['a', 'b']) !== CORE.canonField({ type: 'order' }, ['b', 'a']), true);
     check('text 정규화', CORE.canonField({ type: 'text' }, 'ab1-23 c'), 'AB123C');
 
     // NEWS2 항목별 경계값
@@ -4046,6 +4018,119 @@ function refreshStaff(puz, key) {
   }));
 }
 
+/* ===== 04b-widgets.js — 다양한 응답 형식 =====
+ *  ① 카드 분류(layout:'buckets'): 카드를 끌어 놓거나, 카드 → 상자 순으로 눌러 분류
+ *  ② 버튼 선택(render:'segmented'): 항목마다 보기 버튼 한 줄 중 하나 고르기
+ *  ③ 순서 맞추기(type:'order'): ▲▼ 버튼이나 끌어서 카드 순서 바꾸기
+ * 값은 기존과 같이 setFieldValue로 저장하므로 해시 채점·저장·이어하기가 그대로 동작한다. */
+
+/** SBAR 카드의 출처 표시(획득한 방 / 기본 제공 / 현장 메모) */
+function cardTag(puz, f) {
+  if (!puz.isSbar) return null;
+  if (!f.fromRoom) return h('span', { class: 'from' }, '🃏 현장 메모');
+  const played = S.plan.includes(f.fromRoom);
+  return h('span', { class: 'from' }, played ? '🃏 ' + ROOM_BY_ID[f.fromRoom].clue.label : '🃏 기본 제공 카드');
+}
+
+/* ----- ① 카드 분류 ----- */
+function bucketBoard(puz, key, fields, onChange) {
+  const opts = displayOptions(fields[0], key, puz);
+  const solved = () => getP(key).solved;
+  let picked = null; // 눌러서 고른 카드(화면 상태일 뿐 저장하지 않음)
+  const board = h('div', { class: 'bucket-board' });
+  const hint = h('p', { class: 'small bucket-hint', 'aria-live': 'polite' });
+
+  const move = (fid, value) => {
+    if (solved()) return;
+    picked = null;
+    onChange(fid, value);
+    draw();
+  };
+  const cardEl = (f) => h('button', {
+    type: 'button', class: 'sort-card' + (picked === f.id ? ' picked' : ''), draggable: solved() ? null : 'true',
+    'aria-pressed': picked === f.id ? 'true' : 'false', disabled: solved(),
+    onclick: () => { picked = picked === f.id ? null : f.id; draw(); },
+    ondragstart: (e) => { e.dataTransfer.setData('text/plain', f.id); e.dataTransfer.effectAllowed = 'move'; }
+  }, cardTag(puz, f), h('span', {}, fieldLabel(puz, f)));
+
+  const zone = (value, title, extraClass) => {
+    const items = fields.filter((f) => (getP(key).values[f.id] || '') === value);
+    const z = h('div', { class: 'bucket ' + (extraClass || '') });
+    z.addEventListener('dragover', (e) => { e.preventDefault(); z.classList.add('over'); });
+    z.addEventListener('dragleave', () => z.classList.remove('over'));
+    z.addEventListener('drop', (e) => { e.preventDefault(); z.classList.remove('over'); const fid = e.dataTransfer.getData('text/plain'); if (fid) move(fid, value); });
+    z.append(
+      h('button', {
+        type: 'button', class: 'bucket-head' + (picked ? ' armed' : ''), disabled: solved(),
+        'aria-label': title + (picked ? ' 상자로 고른 카드 옮기기' : ' 상자'),
+        onclick: () => { if (picked) move(picked, value); }
+      }, h('span', {}, title), h('span', { class: 'count' }, String(items.length))),
+      h('div', { class: 'bucket-body' }, ...items.map(cardEl)));
+    return z;
+  };
+  function draw() {
+    board.replaceChildren(
+      zone('', '📥 아직 분류하지 않은 카드', 'tray'),
+      h('div', { class: 'bucket-grid' }, ...opts.map((o) => zone(o.v, o.t))));
+    hint.textContent = picked ? '옮길 상자의 제목을 누르세요. 같은 카드를 다시 누르면 선택이 풀립니다.' : '카드를 끌어 상자에 놓거나, 카드를 누른 뒤 상자 제목을 누르세요.';
+  }
+  draw();
+  return h('div', {}, hint, board);
+}
+
+/* ----- ② 버튼 선택 ----- */
+function segmentedField(puz, key, f, val, disabled, onChange) {
+  const opts = displayOptions(f, key, puz);
+  const group = h('div', { class: 'segbtns', role: 'radiogroup', 'aria-label': f.label });
+  const draw = (cur) => group.replaceChildren(...opts.map((o) => h('button', {
+    type: 'button', role: 'radio', 'aria-checked': cur === o.v ? 'true' : 'false', class: 'segbtn' + (cur === o.v ? ' on' : ''), disabled,
+    onclick: () => { onChange(o.v); draw(o.v); }
+  }, o.t)));
+  draw(val);
+  return h('div', { class: 'field-row seg-row' }, h('div', { class: 'seg-label' }, f.label), group);
+}
+
+/* ----- ③ 순서 맞추기 ----- */
+function orderField(puz, key, f, val, disabled, onChange) {
+  const ids = f.options.map((o) => o.v);
+  const valid = Array.isArray(val) && val.length === ids.length && ids.every((v) => val.includes(v));
+  let cur = valid ? val.slice() : seededShuffle(ids, sessionSeed() + '|order|' + key + '|' + f.id);
+  if (!valid) onChange(cur); // 처음 섞인 순서도 답으로 저장(움직이지 않고 제출해도 채점 가능)
+  const text = Object.fromEntries(f.options.map((o) => [o.v, o.t]));
+  const list = h('ol', { class: 'order-list' });
+  const commit = (next) => { cur = next; onChange(cur); draw(); };
+  const swap = (i, j) => {
+    if (disabled || j < 0 || j >= cur.length) return;
+    const next = cur.slice();
+    [next[i], next[j]] = [next[j], next[i]];
+    commit(next);
+  };
+  function draw() {
+    list.replaceChildren(...cur.map((v, i) => {
+      const li = h('li', { class: 'order-item', draggable: disabled ? null : 'true' },
+        h('span', { class: 'order-no' }, String(i + 1)),
+        h('span', { class: 'order-text' }, text[v]),
+        h('span', { class: 'order-btns' },
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': (i + 1) + '번째 카드 위로', disabled: disabled || i === 0, onclick: () => swap(i, i - 1) }, '▲'),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': (i + 1) + '번째 카드 아래로', disabled: disabled || i === cur.length - 1, onclick: () => swap(i, i + 1) }, '▼')));
+      li.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', String(i)));
+      li.addEventListener('dragover', (e) => e.preventDefault());
+      li.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const from = Number(e.dataTransfer.getData('text/plain'));
+        if (disabled || !Number.isInteger(from) || from === i) return;
+        const next = cur.slice();
+        const [moved] = next.splice(from, 1);
+        next.splice(i, 0, moved);
+        commit(next);
+      });
+      return li;
+    }));
+  }
+  draw();
+  return h('fieldset', {}, h('legend', {}, f.label, h('span', { class: 'pick-note' }, '(▲▼ 버튼이나 끌어서 순서 바꾸기)')), list);
+}
+
 /* ===== 05-puzzle.js — 구간·퍼즐 렌더링, 제출(해시 비교), 힌트, 디브리핑 ===== */
 
 /* ----- 팀별 고정 셔플: 같은 게임(팀·시작 시각)에서는 새로고침·이어하기 후에도 순서가 같다 ----- */
@@ -4113,8 +4198,11 @@ function renderPuzzle(room, puz) {
   const key = pkey(room.id, puz.id);
   const st = getP(key);
   const fields = displayFields(puz, key);
-  const form = h('form', { class: 'fields', novalidate: true, onsubmit: (e) => { e.preventDefault(); submitPuzzle(room, puz); } },
-    ...fields.map((f) => renderField(room, puz, key, f, st)));
+  const onChangeOf = (fid, v) => fieldChanged(room, puz, key, fid, v);
+  const body = puz.layout === 'buckets'
+    ? [bucketBoard(puz, key, fields.filter((f) => !f.adv), onChangeOf), ...fields.filter((f) => f.adv).map((f) => renderField(room, puz, key, f, st))]
+    : fields.map((f) => renderField(room, puz, key, f, st));
+  const form = h('form', { class: 'fields', novalidate: true, onsubmit: (e) => { e.preventDefault(); submitPuzzle(room, puz); } }, ...body);
   const hintBtn = h('button', {
     type: 'button', class: 'btn ghost', id: 'hintBtn', disabled: st.hints >= 3 || st.solved,
     onclick: () => useHint(room, puz)
@@ -4139,6 +4227,13 @@ function renderPuzzle(room, puz) {
     hints);
 }
 
+function fieldChanged(room, puz, key, fieldId, v) {
+  setFieldValue(key, fieldId, v);
+  refreshView(room, puz, key);
+  const fb = $('#fb');
+  if (fb && fb.classList.contains('bad')) { fb.textContent = ''; fb.className = 'feedback'; }
+}
+
 function fieldLabel(puz, f) {
   if (!puz.isSbar || !f.fromRoom) return f.label;
   return ROOM_BY_ID[f.fromRoom].clue.text;
@@ -4148,24 +4243,14 @@ function renderField(room, puz, key, f, st) {
   const val = st.values[f.id];
   const id = 'f_' + f.id;
   const disabled = st.solved;
-  const onChange = (v) => {
-    setFieldValue(key, f.id, v);
-    refreshView(room, puz, key);
-    const fb = $('#fb');
-    if (fb && fb.classList.contains('bad')) { fb.textContent = ''; fb.className = 'feedback'; }
-  };
+  const onChange = (v) => fieldChanged(room, puz, key, f.id, v);
+  if (f.type === 'order') return orderField(puz, key, f, val, disabled, onChange);
+  if (f.type === 'select' && f.render === 'segmented') return segmentedField(puz, key, f, val, disabled, onChange);
   if (f.type === 'select') {
     const sel = h('select', { id, disabled, onchange: (e) => onChange(e.target.value) },
       h('option', { value: '' }, '— 선택 —'),
       ...displayOptions(f, key, puz).map((o) => h('option', { value: o.v, selected: val === o.v }, o.t)));
-    let from = null;
-    if (puz.isSbar && f.fromRoom) {
-      const played = S.plan.includes(f.fromRoom);
-      from = h('span', { class: 'from' }, played ? '🃏 ' + ROOM_BY_ID[f.fromRoom].clue.label : '🃏 기본 제공 카드');
-    } else if (puz.isSbar) {
-      from = h('span', { class: 'from' }, '🃏 현장 메모');
-    }
-    return h('div', { class: 'field-row' + (puz.isSbar ? ' sbar' : '') }, h('label', { for: id }, from, fieldLabel(puz, f)), sel);
+    return h('div', { class: 'field-row' + (puz.isSbar ? ' sbar' : '') }, h('label', { for: id }, cardTag(puz, f), fieldLabel(puz, f)), sel);
   }
   if (f.type === 'number' || f.type === 'text') {
     const input = h('input', {
@@ -4201,6 +4286,7 @@ function renderField(room, puz, key, f, st) {
 
 function isEmpty(f, v) {
   if (f.type === 'checks') return !Array.isArray(v) || v.length === 0;
+  if (f.type === 'order') return !Array.isArray(v) || v.length !== f.options.length;
   return v === undefined || v === null || String(v).trim() === '';
 }
 function setFeedback(cls, msg) {
@@ -4216,7 +4302,7 @@ function submitPuzzle(room, puz) {
   if (st.solved) return;
   const fields = activeFields(puz, S.diff);
   const missing = fields.find((f) => isEmpty(f, st.values[f.id]) && !(puz.graded === false && f.type === 'text'));
-  if (missing) { setFeedback('info', '모든 항목을 입력하거나 선택하세요.'); return; }
+  if (missing) { setFeedback('info', puz.layout === 'buckets' ? '아직 분류하지 않은 카드가 있습니다. 모든 카드를 상자에 넣으세요.' : '모든 항목을 입력하거나 선택하세요.'); return; }
   const wrongCount = fields.find((f) => f.type === 'checks' && f.pick && st.values[f.id].length !== f.pick);
   if (wrongCount) { setFeedback('info', '「' + wrongCount.label + '」은(는) ' + wrongCount.pick + '개를 골라야 합니다.'); return; }
   if (f_isNumberInvalid(fields, st.values)) { setFeedback('info', '숫자 칸에는 숫자만 입력하세요.'); return; }
@@ -4509,7 +4595,7 @@ function answerText(room, puz) {
   return activeFields(puz, S ? S.diff : 'adv').filter((f) => ans[f.id] !== undefined).map((f) => {
     const a = ans[f.id];
     const optText = (v) => { const o = (f.options || []).find((x) => x.v === v); return o ? o.t : v; };
-    const val = Array.isArray(a) ? a.map(optText).join(' / ') : optText(a);
+    const val = Array.isArray(a) ? a.map(optText).join(f.type === 'order' ? ' → ' : ' / ') : optText(a);
     return (fieldLabel(puz, f) || f.id).slice(0, 60) + ' → ' + val;
   });
 }
