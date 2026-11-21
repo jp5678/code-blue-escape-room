@@ -112,7 +112,7 @@ body.emr-locked .emr-text { color: #B91C1C; font-weight: 700; }
 @keyframes emrRainbow { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
 
 /* ----- 레이아웃: 업무 화면(좌) + 스테이션 장비(우) ----- */
-.layout { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 1.25rem; padding: 1.25rem; max-width: 1880px; margin: 0 auto; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 480px; gap: 1.25rem; padding: 1.25rem; max-width: 1880px; margin: 0 auto; }
 .side { display: flex; flex-direction: column; gap: 1rem; position: sticky; top: 78px; align-self: start; }
 .main { min-width: 0; display: flex; flex-direction: column; gap: 1rem; }
 footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding: 1.25rem 1rem 1.75rem; border-top: 1px solid var(--line); margin-top: 1rem; background: var(--surface-2); }
@@ -346,7 +346,7 @@ table.res th { color: var(--primary); }
 .tests li.bad { color: var(--danger); }
 
 /* ----- 반응형 ----- */
-@media (min-width: 1700px) { .layout { grid-template-columns: minmax(0, 1fr) 440px; } }
+@media (min-width: 1700px) { .layout { grid-template-columns: minmax(0, 1fr) 560px; } }
 @media (max-width: 1100px) {
   .layout { grid-template-columns: 1fr; }
   .side { position: static; display: grid; grid-template-columns: 1.3fr 1fr; order: -1; }
