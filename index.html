@@ -170,11 +170,15 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .room-head > .row { padding: .9rem 1.35rem .2rem; }
 .room-head > .obj { padding: 0 1.35rem; }
 .room-head > .story { margin: .7rem 1.35rem 1.1rem; }
-.room-head::before { content: '환자 차트 · 712호 김○○ (72/M) · 지역사회획득 폐렴 3일차 · 담당: 정보간호사 대응팀'; display: block; padding: .4rem 1.35rem; font-size: .78rem; color: var(--primary); background: var(--surface-3); border-bottom: 1px solid var(--line); }
+.room-head::before { content: '환자 차트 · 712호 김○○ (72/M) · 지역사회획득 폐렴 3일차 · 담당: 정보간호사 대응팀'; display: block; padding: .4rem 1.35rem; font-size: .8rem; font-weight: 600; color: #5A1A28; background: #F7ECEE; border-bottom: 1px solid #EAD3D8; box-shadow: inset 4px 0 0 var(--primary); }
 .room-head .row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .room-head h2 { font-size: 1.35rem; margin: 0; }
-.room-head .obj { color: var(--muted); font-size: .9rem; margin: .4rem 0 0; }
-.story { padding: .7rem .9rem; border-left: 4px solid var(--gold); background: var(--surface-2); border-radius: 0 10px 10px 0; font-size: .95rem; }
+.room-head .obj { color: #3F434B; font-size: .9rem; margin: .45rem 0 0; }
+.room-head .obj b { color: var(--primary); margin-right: .3rem; }
+/* 구역 머리 배지: 교재 장은 로즈·버건디, 나머지는 진한 회색 글자 */
+.room-head .badge { color: #3F434B; background: #F1F1F4; border-color: #D3D5DB; }
+.room-head .badge.gold { color: var(--primary); background: #F7ECEE; border-color: #E2C3CA; font-weight: 600; }
+.story { padding: .75rem 1rem; border-left: 4px solid var(--gold); background: #FCF7EC; border-radius: 0 10px 10px 0; font-size: .95rem; color: #2A2D33; line-height: 1.7; }
 .steps { display: flex; gap: .45rem; flex-wrap: wrap; }
 .step { display: flex; align-items: center; gap: .4rem; padding: .3rem .75rem; border-radius: 8px 8px 0 0; border: 1px solid var(--line); border-bottom-width: 3px; font-size: .8rem; color: var(--muted); background: var(--surface-2); }
 .step.active { color: var(--primary); border-bottom-color: var(--gold); background: #fff; font-weight: 700; }
@@ -4203,7 +4207,7 @@ function renderSection() {
       ...room.chapters.map((c) => h('span', { class: 'badge gold' }, c === '부록1' ? '부록 1' : 'Chapter ' + c.replace('Ch', ''))),
       h('span', { class: 'badge' }, '권장 ' + room.minutes + '분'),
       h('span', { class: 'badge' }, '구간 ' + (S.idx + 1) + ' / ' + S.plan.length)),
-    h('p', { class: 'obj' }, '🎯 학습목표: ' + room.objective),
+    h('p', { class: 'obj' }, h('b', {}, '🎯 학습목표'), room.objective),
     h('div', { class: 'story', html: room.story }));
   const steps = h('nav', { class: 'steps', 'aria-label': '퍼즐 진행' }, room.puzzles.map((p, i) => {
     const st = getP(pkey(room.id, p.id));
