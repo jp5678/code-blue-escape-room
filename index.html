@@ -127,8 +127,10 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .mon-chip { flex: 1 1 45%; border-radius: 8px; padding: .3rem .55rem; font-size: .78rem; border: 1px solid #34373F; background: #1E2025; }
 .mon-chip b { font-size: 1rem; }
 .mon-chip .small { color: #A3A7B0; }
-.mon-chip.locked { color: #A3A7B0; }
-.mon-chip.flicker { animation: blink .7s steps(2) infinite; color: #F87171; border-color: #7F1D1D; }
+/* 잠김(계산 불가)·입력 끊김은 모두 이상 상태이므로 빨간 경고. 잠김은 고정, 입력 끊김은 깜빡임으로 구분 */
+.mon-chip.locked, .mon-chip.flicker { color: #F87171; border-color: #B91C1C; background: rgba(127, 29, 29, .28); }
+.mon-chip.locked .small, .mon-chip.flicker .small { color: #FCA5A5; }
+.mon-chip.flicker { animation: blink .7s steps(2) infinite; }
 .mon-chip.lv-high { border-color: #EF4444; color: #FCA5A5; }
 .mon-chip.lv-medium { border-color: #F59E0B; color: #FCD34D; }
 .mon-chip.lv-low-medium, .mon-chip.lv-low { border-color: var(--gold); color: var(--gold); }
