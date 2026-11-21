@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사용 설명서 · 코드 블루: 잠긴 병동</title>
+<meta name="description" content="AI융합 간호정보학 방탈출 게임 「코드 블루: 잠긴 병동」 학생·교수자 사용 설명서">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #6E2233; --primary-2: #8C3A4C; --gold: #C8A96A; --gold-soft: #F7EFE0; --amber: #7A5A20;
+  --danger: #C4320A; --bg: #F6F6F7; --surface: #FFFFFF; --surface-2: #FAFAFB; --surface-3: #EFEFF2;
+  --ink: #2A2D33; --muted: #5F636B; --line: #E1E1E6;
+  --serif: 'Noto Serif KR', serif; --sans: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.75 var(--sans); }
+header.top { background: var(--primary); color: #fff; border-bottom: 3px solid var(--gold); padding: 1.4rem 16px; }
+header.top .wrap { max-width: 980px; margin: 0 auto; }
+header.top h1 { margin: 0; font: 700 clamp(1.5rem, 4vw, 2.1rem)/1.3 var(--serif); }
+header.top p { margin: .3rem 0 0; color: #F2DDE2; }
+header.top a.play { display: inline-block; margin-top: .8rem; padding: .5rem 1rem; border-radius: 10px; background: var(--gold); color: #2B1F05; font-weight: 700; text-decoration: none; }
+nav.toc { max-width: 980px; margin: 1.2rem auto 0; padding: 0 16px; display: flex; flex-wrap: wrap; gap: .4rem; }
+nav.toc a { font-size: .85rem; padding: .3rem .7rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--primary); text-decoration: none; }
+main { max-width: 980px; margin: 0 auto; padding: 0 16px 2rem; }
+section { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1.3rem 1.5rem; margin-top: 1.2rem; }
+h2 { font: 700 1.35rem/1.35 var(--serif); color: var(--primary); margin: 0 0 .6rem; }
+h3 { font-size: 1.05rem; color: var(--primary-2); margin: 1.2rem 0 .4rem; }
+p { margin: .4rem 0; }
+ol, ul { padding-left: 1.3rem; margin: .4rem 0; }
+li { margin: .2rem 0; }
+code { font-family: var(--mono); font-size: .88em; background: var(--surface-3); padding: .05em .35em; border-radius: 6px; color: var(--primary); word-break: break-all; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .5rem 0; }
+th, td { border: 1px solid var(--line); padding: .45rem .6rem; text-align: left; vertical-align: top; }
+th { background: var(--surface-3); color: var(--primary); }
+.table-wrap { overflow-x: auto; }
+.note { background: var(--gold-soft); border-left: 4px solid var(--gold); padding: .6rem .9rem; margin: .7rem 0; }
+.warn { background: #FDEEE8; border-left: 4px solid var(--danger); padding: .6rem .9rem; margin: .7rem 0; }
+.badge { display: inline-block; font-size: .78rem; padding: .05rem .5rem; border-radius: 999px; background: var(--surface-3); color: var(--primary); border: 1px solid var(--line); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .8rem; }
+.card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: .8rem 1rem; }
+.card b { color: var(--primary); }
+kbd { font-family: var(--mono); font-size: .85em; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 0 .35em; background: #fff; }
+footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 1.5rem 16px 2.5rem; }
+@media print {
+  body { background: #fff; } nav.toc, header.top a.play { display: none; }
+  section { break-inside: avoid; border-color: #ccc; } header.top { background: #fff; color: var(--primary); border-bottom: 2px solid var(--primary); }
+  header.top p { color: var(--muted); }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>코드 블루: 잠긴 병동 · 사용 설명서</h1>
+    <p>AI융합 간호정보학 학기 종합 복습 방탈출 · 조별(4~5명) 수업 활동</p>
+    <a class="play" href="./">▶ 게임 바로가기</a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="목차">
+  <a href="#overview">한눈에 보기</a>
+  <a href="#start">시작하기</a>
+  <a href="#screen">화면 구성</a>
+  <a href="#play">퍼즐 풀기</a>
+  <a href="#result">결과 제출</a>
+  <a href="#sections">구간과 교재 장</a>
+  <a href="#teacher">교수자 모드</a>
+  <a href="#class">수업 운영</a>
+  <a href="#faq">자주 묻는 질문</a>
+</nav>
+
+<main>
+<section id="overview">
+  <h2>한눈에 보기</h2>
+  <p>야간 근무 중 7병동 EMR이 사이버 공격 의심으로 잠겼습니다. 712호 <b>김○○ 님(72세 남, 폐렴 입원 3일차)</b>의 상태는 점점 나빠지고, 패혈증 AI 경보(ESM)는 울렸다 꺼지기를 반복합니다. 조원들은 정보간호사 대응팀이 되어 각 공간의 퍼즐을 풀어 시스템을 복구하고, 마지막에 담당의에게 <b>SBAR</b>로 보고하면 탈출합니다.</p>
+  <div class="grid2">
+    <div class="card"><b>전체 모드</b> · 7개 구간 · 제한 45분<br>프롤로그 + 방 1~5 + 최종 관문</div>
+    <div class="card"><b>수업 모드</b> · 5개 구간 · 제한 30분<br>프롤로그 + 교수자가 고른 방 3개 + 최종 관문</div>
+    <div class="card"><b>기본 난이도</b><br>점수표 등 참고 자료를 보여 줍니다.</div>
+    <div class="card"><b>심화 난이도</b><br>계산·판단 문항이 추가되고 일부 참고 자료가 숨겨집니다.</div>
+  </div>
+  <p class="note">준비물: 조별 기기 1대(노트북·태블릿 권장, 휴대폰도 가능), 인터넷 연결. 설치나 로그인은 필요 없습니다.</p>
+</section>
+
+<section id="start">
+  <h2>시작하기 (학생)</h2>
+  <ol>
+    <li>교수자가 알려 준 <b>게임 주소</b>로 접속합니다. 수업 모드라면 주소 끝에 <code>?rooms=…</code>가 붙어 있을 수 있습니다. 그대로 여세요.</li>
+    <li><b>대응팀 등록</b>
+      <ul>
+        <li><b>반</b>: 숫자만 넣어도 됩니다(예: <code>3</code> → 「3반」).</li>
+        <li><b>조원(학번·성명)</b>: 첫 줄(대표 1명)은 필수입니다. 「+ 조원 추가」로 최대 5명까지 넣고, ✕로 지웁니다. 비워 둔 줄은 무시됩니다.</li>
+        <li>학번은 숫자 4~12자리, 성명은 한글·영문 2~20자입니다. 같은 학번은 두 번 넣을 수 없습니다.</li>
+      </ul>
+    </li>
+    <li><b>모드</b>와 <b>난이도</b>를 교수자 안내에 따라 고릅니다. 아래 「이번 게임에서 열리는 구간」 목록에서 진행할 방을 미리 확인할 수 있습니다.</li>
+    <li><b>🚨 출동 (게임 시작)</b>을 누르면 타이머가 시작됩니다.</li>
+  </ol>
+  <p class="note"><b>이어하기:</b> 진행 상황은 그 기기의 브라우저에 자동 저장됩니다. 창을 닫거나 새로고침해도 시작 화면의 「▶ 이어하기」로 이어서 할 수 있습니다. 창을 닫아 둔 시간은 경과 시간에 들어가지 않습니다.</p>
+</section>
+
+<section id="screen">
+  <h2>화면 구성</h2>
+  <div class="grid2">
+    <div class="card"><b>상단 바</b><br>조 이름, 모드·난이도, <b>남은 시간</b>(힌트·사건 페널티 포함), 사용한 힌트 수, 🔊 음소거 버튼</div>
+    <div class="card"><b>업무 화면(왼쪽)</b><br>환자 차트 머리줄 · 구간 이름과 교재 장 · 학습목표 · 상황 이야기 · 퍼즐 탭(A, B, C …) · 퍼즐 본문</div>
+    <div class="card"><b>🖥 중앙 모니터(오른쪽 위)</b><br>김○○ 님의 심전도와 활력징후. <b>시간이 지나거나 오답을 내면 상태가 나빠집니다.</b> NEWS2 계산 모듈과 ESM 경보는 관련 퍼즐을 풀면 복구됩니다.</div>
+    <div class="card"><b>📋 병동 현황판(오른쪽 아래)</b><br>병동 평면도. 해제한 방 ✓, 지금 있는 방은 골드 테두리, 이번 게임에 없는 방은 빗금으로 표시됩니다.</div>
+  </div>
+  <p>태블릿·휴대폰처럼 화면이 좁으면 모니터와 현황판이 업무 화면 위로 올라갑니다.</p>
+</section>
+
+<section id="play">
+  <h2>퍼즐 풀기</h2>
+  <h3>답하는 방법</h3>
+  <ul>
+    <li><b>선택 상자</b>: 항목마다 알맞은 보기를 고릅니다(짝짓기·분류·배치).</li>
+    <li><b>보기 카드</b>: 「n개 선택」이라고 적힌 문제는 정확히 그 개수만 고릅니다. 「해당하는 것 모두」는 맞는 것을 모두 고릅니다.</li>
+    <li><b>숫자 칸</b>: 반올림한 정수로 입력합니다(예: <code>33</code>).</li>
+    <li><b>그림 자료</b>: 방 1의 흐름도는 연결선을 눌러도 선택되고, 방 5의 코드는 줄을 눌러 고릅니다.</li>
+    <li>모든 칸을 채운 뒤 <b>제출</b>(또는 <kbd>Enter</kbd>)을 누릅니다.</li>
+  </ul>
+  <p class="note">문항과 보기의 순서는 <b>조마다 다르게 섞여</b> 있습니다. 다른 조와 위치를 맞춰 보는 방법은 통하지 않습니다.</p>
+
+  <h3>정답과 오답</h3>
+  <ul>
+    <li><b>정답</b>이면 <b>디브리핑 카드</b>가 열립니다. 정답 근거, 핵심 개념, 교재 장, 출처(DOI)가 담겨 있으니 조원이 함께 읽고 「계속」을 누르세요. 해결한 퍼즐에서 「📖 디브리핑 다시 보기」로 다시 볼 수 있습니다.</li>
+    <li><b>오답</b>이면 「n개 항목 중 m개 정답」처럼 맞은 개수만 알려 줍니다. 오답을 낼 때마다 <b>환자 상태가 나빠집니다.</b></li>
+    <li>환자 상태가 끝까지 나빠지면 <b>CODE BLUE</b>가 발생하고 2분 페널티가 붙습니다. 게임은 계속되지만 결과 화면의 「환자 결과」에 반영됩니다.</li>
+  </ul>
+
+  <h3>힌트</h3>
+  <table>
+    <tr><th>단계</th><th>내용</th><th>페널티</th></tr>
+    <tr><td>① 넛지</td><td>생각할 방향</td><td>+1분</td></tr>
+    <tr><td>② 부분 공개</td><td>정답 일부</td><td>+2분</td></tr>
+    <tr><td>③ 거의 정답</td><td>답에 아주 가까운 설명</td><td>+3분</td></tr>
+  </table>
+
+  <h3>구역 해제와 단서 카드</h3>
+  <p>한 구역의 퍼즐을 모두 풀면 「🔓 해제!」 화면에 소요 시간과 정답률이 나오고, 방에 따라 <b>🃏 단서 카드</b>를 얻습니다. 단서 카드는 최종 관문의 SBAR 보고에 쓰입니다. 그중에는 <b>보고에 넣으면 안 되는 카드</b>도 섞여 있습니다. 수업 모드에서 하지 않은 방의 카드는 「기본 제공 카드」로 자동 지급됩니다.</p>
+
+  <h3>키보드</h3>
+  <p><kbd>Tab</kbd> 이동 · <kbd>Enter</kbd> 제출 · <kbd>H</kbd> 힌트 · <kbd>M</kbd> 음소거 · <kbd>Esc</kbd> 창 닫기</p>
+</section>
+
+<section id="result">
+  <h2>결과 확인과 제출</h2>
+  <ol>
+    <li>최종 관문에서 SBAR 보고를 마치면 「AI 공존 시대에 내가 될 간호사」 유형을 고르고 <b>한 줄 다짐</b>을 적습니다. 정답이 없는 문항입니다.</li>
+    <li><b>결과 화면</b>에는 총 소요 시간(페널티 포함), 힌트·페널티·오답 수, 환자 결과, 구간별 기록, <b>장별 취약 영역</b>이 나옵니다. 정답률 70% 미만이거나 힌트를 2회 이상 쓴 장은 「⚠ 복습 필요」로 표시됩니다.</li>
+    <li><b>🖼 결과 PNG로 저장</b>을 누르면 반·학번·성명이 들어간 이미지가 저장됩니다. 파일 이름은 <code>코드블루_결과_3반_학번_성명외n명.png</code> 형식입니다. <b>교수자 안내에 따라 이 파일을 제출하세요.</b></li>
+  </ol>
+  <p class="warn">「새 게임」을 누르면 이 기기의 결과가 지워집니다. 반드시 PNG를 저장한 뒤 누르세요.</p>
+</section>
+
+<section id="sections">
+  <h2>구간과 교재 장</h2>
+  <div class="table-wrap">
+  <table>
+    <tr><th>구간</th><th>교재 장</th><th>퍼즐</th><th>권장 시간</th><th>다루는 내용</th></tr>
+    <tr><td>프롤로그 · 브리핑실</td><td>1·2장</td><td>2</td><td>3분</td><td>대응팀 역할과 핵심역량, 4P 의학·DX/AX</td></tr>
+    <tr><td>방 1 · 기록실</td><td>3·4장</td><td>4</td><td>7분</td><td>병원정보시스템 데이터 흐름, 표준 용어, HL7 FHIR, 문 비밀번호</td></tr>
+    <tr><td>방 2 · 윤리위원회실</td><td>6·7장</td><td>3</td><td>7분</td><td>상용 AI 사용 전 비식별화, 알고리즘 편향 유형, AI 규제와 책임 원칙</td></tr>
+    <tr><td>방 3 · 간호스테이션</td><td>3·8·9장</td><td>3</td><td>8분</td><td>NEWS2·qSOFA 계산, 경고 피로 속 우선순위 경보, 야간 인력 재배치</td></tr>
+    <tr><td>방 4 · 연구실</td><td>11·12장</td><td>3</td><td>7분</td><td>데이터 정제, ESM 외부 검증 혼동행렬, AI 경보 판단</td></tr>
+    <tr><td>방 5 · 교육실</td><td>5·10장, 부록1</td><td>4</td><td>8분</td><td>생성형 AI 환각, 프롬프트, 시뮬레이션 시나리오 요건, 바이브 코딩 디버깅</td></tr>
+    <tr><td>최종 관문 · 탈출구</td><td>13장</td><td>2</td><td>4분</td><td>SBAR 보고, 미래 간호사 다짐</td></tr>
+  </table>
+  </div>
+  <p>모든 임상 수치·표준 코드·출처는 원문(PubMed, RCP NEWS2 원본 차트, HL7 FHIR 명세 등)이나 교재와 대조해 확인한 내용만 사용했습니다.</p>
+</section>
+
+<section id="teacher">
+  <h2>교수자 모드</h2>
+  <h3>들어가는 방법</h3>
+  <ol>
+    <li>게임 주소 끝에 <code>?teacher=1</code>을 붙여 엽니다. 수업 모드 주소와 함께 쓸 때는 <code>?rooms=r1,r3,r4&amp;teacher=1</code>처럼 <code>&amp;</code>로 잇습니다.</li>
+    <li>오른쪽 위에 생긴 <b>🎓 교수자</b> 버튼을 누르고 <b>교수자 비밀번호</b>를 입력합니다. 같은 탭에서는 탭을 닫을 때까지 다시 묻지 않습니다.</li>
+  </ol>
+  <p class="warn">학생에게는 <code>?teacher=1</code>이 없는 주소만 나눠 주세요. 비밀번호는 학생에게 알리지 마세요.</p>
+  <h3>교수자 메뉴 기능</h3>
+  <table>
+    <tr><th>기능</th><th>설명</th></tr>
+    <tr><td>현재 퍼즐 정답 보기</td><td>지금 퍼즐의 정답을 문구로 보여 줍니다.</td></tr>
+    <tr><td>🎓 정답 자동 입력</td><td>퍼즐 화면의 버튼. 정답을 채워 주며, 학생이 제출해야 처리됩니다(시연용).</td></tr>
+    <tr><td>⏭ 현재 구간 건너뛰기</td><td>시간이 부족한 조를 다음 구간으로 넘깁니다. 건너뛴 퍼즐은 정답률 집계에서 빠집니다.</td></tr>
+    <tr><td>수업 모드에서 쓸 방 3개</td><td>방 1~5 중 3개를 골라 「이 기기에 저장」하거나, 아래에 나오는 <b>공유 주소</b>를 조별로 나눠 줍니다.</td></tr>
+    <tr><td>🗑 진행 초기화</td><td>이 기기의 진행 기록과 학번·성명을 지웁니다.</td></tr>
+  </table>
+</section>
+
+<section id="class">
+  <h2>수업 운영 안내</h2>
+  <h3>수업 모드 방 정하기</h3>
+  <p>교수자 메뉴에서 방 3개를 고르면 <code>…/?rooms=r1,r3,r4</code> 같은 공유 주소가 나옵니다. 이 주소를 조별로 나눠 주면 모든 기기가 같은 방으로 진행합니다. 방 번호: <code>r1</code> 기록실, <code>r2</code> 윤리위원회실, <code>r3</code> 간호스테이션, <code>r4</code> 연구실, <code>r5</code> 교육실. 지정하지 않으면 기록실·간호스테이션·연구실이 기본입니다.</p>
+  <h3>권장 진행 순서 (전체 모드 50분 수업 기준)</h3>
+  <ol>
+    <li>도입 3분: 상황 설명, 조 편성, 주소 배포</li>
+    <li>게임 45분: 교수자는 교실을 돌며 막힌 조를 지원(필요하면 교수자 모드로 구간 건너뛰기)</li>
+    <li>마무리 2분 + 다음 시간: 결과 PNG 제출, 「복습 필요」 장 중심으로 피드백</li>
+  </ol>
+  <h3>공용 기기와 개인정보</h3>
+  <p>학번·성명은 외부로 전송되지 않고 <b>그 기기의 브라우저에만</b> 저장됩니다. 공용 태블릿을 쓴다면 수업 뒤 교수자 메뉴의 「🗑 진행 초기화」로 지워 주세요.</p>
+</section>
+
+<section id="faq">
+  <h2>자주 묻는 질문</h2>
+  <h3>정답을 골랐는데 계속 틀렸다고 나와요.</h3>
+  <p>「n개 선택」 문제에서 개수가 맞는지, 숫자 칸에 반올림한 정수를 넣었는지 확인하세요. 항목이 여러 개인 문제는 그중 일부만 틀려도 오답입니다. 맞은 개수를 보고 나머지를 다시 살펴보세요.</p>
+  <h3>새로고침했더니 처음 화면이 나와요.</h3>
+  <p>시작 화면의 「▶ 이어하기」를 누르면 이어집니다. 다른 기기나 시크릿 창에서는 이어할 수 없습니다.</p>
+  <h3>화면이 예전 색이나 예전 내용으로 보여요.</h3>
+  <p>브라우저 캐시 때문입니다. 새로고침(Windows <kbd>Ctrl</kbd>+<kbd>F5</kbd>, Mac <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>)을 해 주세요.</p>
+  <h3>소리가 너무 커요 / 안 나요.</h3>
+  <p>상단의 🔊 버튼(또는 <kbd>M</kbd>)으로 켜고 끕니다. 브라우저 정책상 화면을 한 번 누른 뒤부터 소리가 납니다.</p>
+  <h3>결과 PNG 저장이 안 돼요.</h3>
+  <p>일부 태블릿 브라우저는 다운로드가 막혀 있을 수 있습니다. 이때는 결과 화면을 캡처해 제출하세요.</p>
+  <h3>게임이 제대로 계산하는지 확인하고 싶어요.</h3>
+  <p>주소 끝에 <code>?test=1</code>을 붙여 열면 NEWS2·qSOFA·보안 함수의 자동 테스트 결과(70여 개)를 볼 수 있습니다.</p>
+</section>
+</main>
+
+<footer>정종필 교수 · 청암대학교 간호학과 · <a href="./" style="color: var(--primary)">게임으로 돌아가기</a></footer>
+</body>
+</html>

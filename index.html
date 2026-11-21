@@ -4713,7 +4713,8 @@ function renderStart() {
       h('li', {}, '오른쪽 모니터의 환자 상태는 시간이 지나거나 오답을 내면 악화됩니다.'),
       h('li', {}, '힌트는 3단계(넛지 → 부분 공개 → 거의 정답), 사용 시 1·2·3분 페널티가 붙습니다.'),
       h('li', {}, '퍼즐을 풀면 디브리핑 카드와 단서 카드를 얻습니다. 진행 상황은 이 기기에 자동 저장됩니다.'),
-      h('li', {}, '키보드: Tab 이동 · Enter 제출 · H 힌트 · M 음소거')));
+      h('li', {}, '키보드: Tab 이동 · Enter 제출 · H 힌트 · M 음소거')),
+    h('p', {}, h('a', { class: 'btn ghost', href: 'manual.html', target: '_blank', rel: 'noopener' }, '📘 사용 설명서 보기')));
   const roster = buildRosterForm(() => start());
   const form = h('section', { class: 'puzzle glass' },
     h('h3', {}, '대응팀 등록'),
