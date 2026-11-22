@@ -312,6 +312,11 @@ table.score { font-size: .74rem; margin-top: .6rem; }
 .hero { padding: 1.4rem 1.6rem 1.2rem; background: linear-gradient(135deg, #FFFFFF 0%, #F7EEF0 100%); border-top: 6px solid var(--primary); }
 .hero h2 { font-size: clamp(1.6rem, 2.8vw, 2.3rem); color: var(--primary); }
 .hero p.lead { font-size: .98rem; color: var(--ink); margin: .5rem 0; }
+.hero.intro { position: relative; isolation: isolate; background: linear-gradient(135deg, #F4DFE4 0%, #E4BBC4 100%); border-top-color: var(--danger); animation: introGlow 2s ease-in-out infinite; }
+.hero.intro::before { content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none; background: linear-gradient(135deg, #EBC6CE 0%, #D48E9E 100%); opacity: 0; animation: introBlink 2s ease-in-out infinite; }
+.hero.intro .hero-tips { color: var(--ink); }
+@keyframes introBlink { 50% { opacity: .85; } }
+@keyframes introGlow { 50% { box-shadow: 0 0 0 3px rgba(196, 50, 10, .35), 0 8px 26px rgba(110, 34, 51, .3); } }
 .hero-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem 1rem; flex-wrap: wrap; margin-top: .5rem; }
 .hero-head h2 { margin: 0; }
 .hero-tips { margin: .4rem 0 0; padding-left: 1.2rem; columns: 2; column-gap: 2.5rem; }
@@ -4841,7 +4846,7 @@ function renderStart() {
     updateHeader();
     updateMonitor();
   };
-  const hero = h('section', { class: 'hero glass' },
+  const hero = h('section', { class: 'hero glass intro' },
     h('span', { class: 'badge gold' }, DATA.meta.subtitle),
     h('div', { class: 'hero-head' },
       h('h2', {}, DATA.meta.title),
