@@ -4707,7 +4707,7 @@ function openTeacherPanel() {
 
 const ROSTER = Object.freeze({
   maxMembers: 5,
-  classes: Object.freeze(['A', 'B', 'C', 'D', 'E', 'F']),
+  classes: Object.freeze(['A', 'B', 'C', 'D', 'E', 'F', '전공심화과정']),
   sidLength: 7,
   sidPattern: /^[0-9]{7}$/,
   // 한글 또는 영문 이름(글자수 제한 없음). 영문 이름 사이의 띄어쓰기는 허용(예: Jong Pil Jeong)
@@ -4718,7 +4718,8 @@ const normSpace = (v) => String(v || '').trim().replace(/\s+/g, ' ');
 const normSid = (v) => String(v || '').replace(/[\s-]/g, '');
 function normCls(v) {
   const s = normSpace(v);
-  return !s || /반$/.test(s) ? s : s + '반';
+  // A~F 같은 반 기호에만 「반」을 붙인다(「전공심화과정」은 그대로).
+  return /^[A-Za-z0-9]$/.test(s) ? s + '반' : s;
 }
 
 /** 화면 머리·결과에 쓰는 짧은 표시 이름. 예: 「3반 · 홍길동 외 3명」 */
@@ -4735,7 +4736,7 @@ function rosterLines(st) {
 function buildRosterForm(onEnter) {
   const clsInput = h('select', { id: 'cls', 'data-autofocus': true },
     h('option', { value: '', selected: true, disabled: true }, '반 선택'),
-    ROSTER.classes.map((c) => h('option', { value: c }, c + '반')));
+    ROSTER.classes.map((c) => h('option', { value: c }, normCls(c))));
   // 학번 칸: 숫자 외 문자는 입력 즉시 지우고 7자리까지만 받는다.
   const onlyDigits = (e) => {
     const t = e.target;
@@ -4785,7 +4786,7 @@ function buildRosterForm(onEnter) {
 
   /** 입력 검증. 실패하면 {ok:false, error, focus} */
   function read() {
-    if (!ROSTER.classes.includes(clsInput.value)) return { ok: false, error: '반을 선택하세요. (A~F반)', focus: clsInput };
+    if (!ROSTER.classes.includes(clsInput.value)) return { ok: false, error: '반을 선택하세요. (A~F반 또는 전공심화과정)', focus: clsInput };
     const cls = normCls(clsInput.value);
     const rows = $$('.member-row', list);
     const members = [];
