@@ -334,6 +334,9 @@ table.score { font-size: .74rem; margin-top: .6rem; }
 .roster { display: grid; grid-template-columns: minmax(120px, 180px) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .member-list { display: grid; gap: .45rem; margin: .4rem 0 .5rem; }
 .member-row { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) minmax(0, 1.2fr) 2.6rem; gap: .5rem; align-items: center; }
+.member-row input[aria-invalid=true] { border-color: var(--danger); box-shadow: 0 0 0 2px var(--danger-soft); }
+.sid-msg { margin: -.1rem 0 .5rem; color: var(--danger); font-size: .85rem; font-weight: 600; }
+.sid-msg:empty { display: none; }
 .member-no { font-family: var(--mono); color: var(--primary); font-weight: 700; text-align: center; }
 .roster-line { font-size: .95rem; color: var(--ink); }
 .res-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .8rem; }
@@ -4742,13 +4745,38 @@ function buildRosterForm(onEnter) {
   const clsInput = h('select', { id: 'cls', 'data-autofocus': true },
     h('option', { value: '', selected: true, disabled: true }, '반 선택'),
     ROSTER.classes.map((c) => h('option', { value: c }, normCls(c))));
-  // 학번 칸: 숫자 외 문자는 입력 즉시 지우고 7자리까지만 받는다.
-  const onlyDigits = (e) => {
-    const t = e.target;
-    const clean = t.value.replace(/[^0-9]/g, '').slice(0, ROSTER.sidLength);
-    if (t.value !== clean) t.value = clean;
-  };
+  // 학번 칸: 숫자 외 문자는 입력 즉시 지운다. 자릿수는 잘라내지 않고 안내한다.
+  //  - 7자리 초과: 입력하는 즉시 경고
+  //  - 7자리 미만: 칸을 벗어날 때 경고(입력 도중에는 재촉하지 않음)
   const list = h('div', { class: 'member-list', id: 'memberList' });
+  const sidMsg = h('p', { class: 'sid-msg', id: 'sidMsg', 'aria-live': 'polite' });
+  const sidProblem = (t) => {
+    const n = t.value.length;
+    const L = ROSTER.sidLength;
+    if (n === 0 || n === L) return '';
+    if (n < L && !t.dataset.touched) return '';
+    return '학번은 숫자 ' + L + '자리로 입력하세요. (현재 ' + n + '자리 · ' + (n > L ? (n - L) + '자리 초과' : (L - n) + '자리 부족') + ')';
+  };
+  const refreshSidMsg = () => {
+    const lines = [];
+    $$('[data-k=sid]', list).forEach((t, i) => {
+      const p = sidProblem(t);
+      if (p) { t.setAttribute('aria-invalid', 'true'); t.setAttribute('aria-describedby', 'sidMsg'); lines.push((i + 1) + '번째 조원: ' + p); }
+      else { t.toggleAttribute('aria-invalid', false); t.toggleAttribute('aria-describedby', false); }
+    });
+    const text = lines.join(' / ');
+    if (sidMsg.textContent !== text) sidMsg.textContent = text;
+  };
+  const onSidInput = (e) => {
+    const t = e.target;
+    const clean = t.value.replace(/[^0-9]/g, '').slice(0, 20);
+    if (t.value !== clean) t.value = clean;
+    refreshSidMsg();
+  };
+  const onSidBlur = (e) => {
+    if (e.target.value) e.target.dataset.touched = '1';
+    refreshSidMsg();
+  };
   const addBtn = h('button', { type: 'button', class: 'btn ghost', onclick: () => addRow() }, '+ 조원 추가');
 
   const rowValues = () => $$('.member-row', list).map((r) => ({
@@ -4762,13 +4790,14 @@ function buildRosterForm(onEnter) {
       return h('div', { class: 'member-row' },
         h('span', { class: 'member-no', 'aria-hidden': 'true' }, String(i + 1)),
         h('label', { class: 'sr-only', for: sidId }, (i + 1) + '번째 조원 학번'),
-        h('input', { type: 'text', id: sidId, 'data-k': 'sid', inputmode: 'numeric', pattern: '[0-9]*', maxlength: ROSTER.sidLength, placeholder: '학번(숫자 7자리)', autocomplete: 'off', value: m.sid, oninput: onlyDigits }),
+        h('input', { type: 'text', id: sidId, 'data-k': 'sid', inputmode: 'numeric', pattern: '[0-9]*', placeholder: '학번(숫자 7자리)', autocomplete: 'off', value: m.sid, oninput: onSidInput, onblur: onSidBlur }),
         h('label', { class: 'sr-only', for: nameId }, (i + 1) + '번째 조원 성명'),
         h('input', { type: 'text', id: nameId, 'data-k': 'name', placeholder: '성명(한글 또는 영문)', autocomplete: 'off', autocapitalize: 'words', spellcheck: 'false', value: m.name }),
         values.length > 1
           ? h('button', { type: 'button', class: 'icon-btn', 'aria-label': (i + 1) + '번째 조원 삭제', onclick: () => removeRow(i) }, '✕')
           : h('span', {}));
     }));
+    refreshSidMsg();
     addBtn.disabled = values.length >= ROSTER.maxMembers;
     addBtn.textContent = values.length >= ROSTER.maxMembers ? '조원은 최대 ' + ROSTER.maxMembers + '명' : '+ 조원 추가';
   }
@@ -4786,7 +4815,7 @@ function buildRosterForm(onEnter) {
 
   const el = h('div', { class: 'roster' },
     h('div', { class: 'roster-cls' }, h('label', { for: 'cls' }, '반'), clsInput),
-    h('div', {}, h('div', {}, '조원 (학번 · 성명) ', h('span', { class: 'small' }, '— 대표 1명은 필수, 최대 ' + ROSTER.maxMembers + '명')), list, addBtn));
+    h('div', {}, h('div', {}, '조원 (학번 · 성명) ', h('span', { class: 'small' }, '— 대표 1명은 필수, 최대 ' + ROSTER.maxMembers + '명')), list, sidMsg, addBtn));
   el.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') onEnter(); });
 
   /** 입력 검증. 실패하면 {ok:false, error, focus} */
