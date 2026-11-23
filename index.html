@@ -96,6 +96,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* 헤더 사용 설명서 버튼: ward-chip(7병동 간호스테이션)과 같은 크기·모양 */
 .manual-chip { font-size: .78rem; padding: .15rem .6rem; border-radius: 999px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .3); color: #fff; font-weight: 400; }
 .manual-chip:hover { background: rgba(255, 255, 255, .24); }
+.reset-chip { cursor: pointer; font-family: inherit; line-height: inherit; }
+/* 초기화 확인 창 */
+.reset-sum { display: grid; grid-template-columns: auto 1fr; gap: .25rem 1rem; margin: .6rem 0; padding: .6rem .8rem; border-radius: 10px; background: var(--danger-soft); border: 1px solid #FCA5A5; font-size: .9rem; }
+.reset-sum dt { color: var(--muted); } .reset-sum dd { margin: 0; font-weight: 700; }
+.reset-input { width: 100%; padding: .55rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; font-size: 1rem; margin-top: .3rem; }
+.btn.danger-solid { background: var(--danger); color: #fff; }
+.btn.danger-solid:disabled { opacity: .4; cursor: not-allowed; }
 .badge { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .55rem; border-radius: 999px; font-size: .75rem; border: 1px solid var(--line-strong); background: var(--surface-3); color: var(--primary); white-space: nowrap; }
 .badge.gold { color: var(--amber); background: var(--gold-soft); border-color: #E0CB9B; }
 .badge.red { color: var(--danger); background: var(--danger-soft); border-color: #FCA5A5; }
@@ -3229,6 +3236,7 @@ const ROOMS = {
   <div class="stat" title="사용한 힌트 수"><span class="k">힌트</span><span class="v" id="hintCount">0</span></div>
   <button class="icon-btn" id="muteBtn" type="button" aria-pressed="false" title="음소거 (M)">🔊</button>
   <button class="icon-btn hidden" id="teacherBtn" type="button" title="교수자 메뉴">🎓 교수자</button>
+  <button class="manual-chip reset-chip hidden" id="resetBtn" type="button" title="진행 기록 초기화">🔄 초기화</button>
   <a class="manual-chip manual-link" href="manual.html" target="_blank" rel="noopener" title="사용 설명서 (새 탭)">📘 사용 설명서</a>
 </header>
 <div class="emr-status" id="emrStatus" role="status" aria-live="polite">
@@ -5223,9 +5231,35 @@ function renderStart() {
   setTimeout(() => roster.focus(), 50);
 }
 
+/* 진행 초기화: 학생 누구나 사용, 실수 방지를 위해 '초기화' 직접 입력 후 실행. 수업 모드 방 설정은 유지 */
+function openResetDialog() {
+  const g = S || storage.get(STORE_KEY, null);
+  if (!g) return;
+  const sec = S ? usedSec() : (g.elapsedMs || 0) / 1000 + (g.penaltySec || 0);
+  const roomId = Array.isArray(g.plan) ? g.plan[Math.min(g.idx || 0, g.plan.length - 1)] : null;
+  const where = g.finished ? '게임 종료 (결과 화면)' : roomId && ROOM_BY_ID[roomId] ? ROOM_BY_ID[roomId].name : '—';
+  const input = h('input', { class: 'reset-input', type: 'text', autocomplete: 'off', placeholder: '초기화', 'aria-label': "확인을 위해 '초기화' 입력", 'data-autofocus': true });
+  const go = h('button', { class: 'btn danger-solid', type: 'button', disabled: true, onclick: () => { clearSaved(); location.reload(); } }, '🔄 초기화 실행');
+  input.addEventListener('input', () => { go.disabled = input.value.trim() !== '초기화'; });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !go.disabled) go.click(); });
+  openModal([
+    h('h2', {}, '🔄 진행 기록 초기화'),
+    h('p', {}, '이 기기에 저장된 아래 게임 기록이 ', h('b', {}, '모두 지워지고 되돌릴 수 없습니다.'), ' 결과를 제출해야 한다면 먼저 결과 PNG를 저장하세요.'),
+    h('dl', { class: 'reset-sum' },
+      h('dt', {}, '대응팀'), h('dd', {}, g.team || '—'),
+      h('dt', {}, '모드'), h('dd', {}, (g.mode === 'full' ? '전체 모드' : '수업 모드') + ' · ' + (g.diff === 'adv' ? '심화' : '기본')),
+      h('dt', {}, '진행 위치'), h('dd', {}, where),
+      h('dt', {}, '사용 시간'), h('dd', {}, fmtTime(sec) + ' (페널티 포함)')),
+    h('p', { class: 'small' }, '교수자가 정한 수업 모드 방 설정은 유지됩니다. 계속하려면 아래 칸에 ', h('b', {}, '초기화'), '라고 입력하세요.'),
+    input,
+    h('div', { class: 'actions' }, go, h('button', { class: 'btn ghost', type: 'button', onclick: closeModal }, '취소'))
+  ], { label: '진행 기록 초기화' });
+}
+
 function updateHeader() {
   const timer = $('#timer');
   const hc = $('#hintCount');
+  $('#resetBtn').classList.toggle('hidden', !S && !storage.get(STORE_KEY, null)); // 지울 기록이 있을 때만 표시
   if (!S) { timer.textContent = '--:--'; hc.textContent = '0'; return; }
   const rem = remainingSec();
   timer.textContent = S.finished ? fmtTime(usedSec()) : fmtTime(rem);
@@ -5278,6 +5312,7 @@ function boot() {
   const mute = $('#muteBtn');
   const drawMute = () => { mute.textContent = Sound.isMuted() ? '🔇' : '🔊'; mute.setAttribute('aria-pressed', Sound.isMuted() ? 'true' : 'false'); mute.setAttribute('aria-label', Sound.isMuted() ? '소리 켜기' : '음소거'); };
   mute.addEventListener('click', () => { Sound.setMuted(!Sound.isMuted()); drawMute(); });
+  $('#resetBtn').addEventListener('click', openResetDialog);
   drawMute();
   if (teacherEnabled()) {
     restoreTeacherSession();
@@ -5288,6 +5323,7 @@ function boot() {
   document.addEventListener('keydown', onKey);
   if (params.get('test') === '1') renderTests();
   else renderStart();
+  updateHeader(); // 시작 화면에서도 저장 기록이 있으면 초기화 버튼 표시
   updateMonitor();
   setInterval(tick, 1000);
   window.addEventListener('beforeunload', persist);
