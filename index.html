@@ -197,7 +197,7 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .room-head > .row { padding: .9rem 1.35rem .2rem; }
 .room-head > .obj { padding: 0 1.35rem; }
 .room-head > .story { margin: .7rem 1.35rem 1.1rem; }
-.room-head::before { content: '환자 차트 · 712호 김○○ (72/M) · 지역사회획득 폐렴 3일차 · 담당: 정보간호사 대응팀'; display: block; padding: .4rem 1.35rem; font-size: .8rem; font-weight: 600; color: #5A1A28; background: #F7ECEE; border-bottom: 1px solid #EAD3D8; box-shadow: inset 4px 0 0 var(--primary); }
+.room-head::before { content: '환자 차트 · 712호 김○○ (72/M) · 지역사회획득 폐렴 3일차 · 담당: 정보간호사 대응팀'; display: block; padding: .4rem 1.35rem; font-size: .8rem; font-weight: 600; color: #5A1A28; background: #F7ECEE; border-bottom: 1px solid #EAD3D8; } /* 세로 강조선은 카드 공통 border-left 하나만 사용(중복 시 위쪽만 두꺼워짐) */
 .room-head .row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .room-head h2 { font-size: 1.35rem; margin: 0; }
 .room-head .obj { color: #3F434B; font-size: .9rem; margin: .45rem 0 0; }
@@ -480,8 +480,9 @@ table.res th { color: var(--primary); }
 .glass.c-steps { --card-accent: #C8A96A; }         /* 퍼즐 탭: 금색 */
 .glass.c-puzzle { --card-accent: #0F766E; }        /* 퍼즐 카드: 청록 */
 .glass.c-clear { --card-accent: #2F855A; }         /* 구간 해제: 초록 */
-.glass.monitor-wrap { --card-accent: #475569; }    /* 중앙 모니터: 슬레이트 */
-.glass.minimap { --card-accent: #7C3AED; border-width: 1px 1px 1px 4px; }  /* 병동 현황판: 보라 */
+.glass.monitor-wrap, .glass.minimap { border: 1px solid var(--line-strong); transform: translateY(-3px); } /* 중앙 모니터·현황판: 세로선 대신 돌출 효과 */
+.glass.monitor-wrap { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 2px 4px rgba(20, 22, 28, .08), 0 12px 28px -6px rgba(20, 22, 28, .28); }
+.glass.minimap { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 4px #F5F5F7, 0 2px 4px rgba(20, 22, 28, .08), 0 12px 28px -6px rgba(20, 22, 28, .28); }
 .glass.c-course { --card-accent: #2563EB; }        /* 환자 경과 그래프: 파랑 */
 .glass.c-sec { --card-accent: #7C3AED; }           /* 구간별 기록: 보라 */
 .glass.c-ch { --card-accent: #0F766E; }            /* 장별 취약 영역: 청록 */
