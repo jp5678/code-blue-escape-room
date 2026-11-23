@@ -351,10 +351,6 @@ table.score { font-size: .74rem; margin-top: .6rem; }
 .sid-msg:empty { display: none; }
 .member-no { font-family: var(--mono); color: var(--primary); font-weight: 700; text-align: center; }
 .roster-line { font-size: .95rem; color: var(--ink); }
-.res-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .8rem; }
-.kpi { padding: .9rem 1rem; border-top: 4px solid var(--gold); }
-.kpi .k { font-size: .78rem; color: var(--muted); }
-.kpi .v { font: 700 1.4rem var(--mono); color: var(--primary); }
 table.res { width: 100%; border-collapse: collapse; font-size: .9rem; }
 table.res th, table.res td { padding: .45rem .5rem; border-bottom: 1px solid var(--line); text-align: left; }
 table.res th { color: var(--primary); }
@@ -397,6 +393,32 @@ table.res th { color: var(--primary); }
 @keyframes rhPop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes rhBlink { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .confetti { display: none; } .rh-icon, .stars span.on { animation: none !important; } }
+/* D. 결과 숫자 카드 3묶음 */
+.kgroups { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .8rem; }
+.kgroup { padding: .9rem 1.1rem; border-top: 5px solid; }
+.kgroup.lv-ok { border-top-color: #2F855A; } .kgroup.lv-warn { border-top-color: #D97706; } .kgroup.lv-bad { border-top-color: var(--danger); }
+.kg-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--ink); }
+.kg-lv { font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; }
+.lv-ok .kg-lv { color: #276749; background: #F0FDF4; } .lv-warn .kg-lv { color: #B45309; background: #FFF6E5; } .lv-bad .kg-lv { color: var(--danger); background: var(--danger-soft); }
+.kg-big { font: 700 2rem var(--mono); margin: .25rem 0 .35rem; }
+.lv-ok .kg-big { color: #276749; } .lv-warn .kg-big { color: #B45309; } .lv-bad .kg-big { color: var(--danger); }
+.kg-rows { display: grid; grid-template-columns: auto 1fr; gap: .15rem .8rem; margin: 0; font-size: .85rem; }
+.kg-rows dt { color: var(--muted); } .kg-rows dd { margin: 0; text-align: right; font-family: var(--mono); font-weight: 600; }
+.kg-note { margin-top: .45rem; font-size: .72rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: .35rem; }
+/* C. 환자 경과 그래프 */
+.course-svg { width: 100%; height: auto; display: block; margin-top: .4rem; }
+.course-svg text { font-family: var(--sans, 'Noto Sans KR', sans-serif); }
+.course-svg .c-ax { font-size: 11px; fill: #5F636B; }
+.course-svg .c-thr { font-size: 11px; font-weight: 700; }
+.course-svg .c-room { font-size: 11.5px; font-weight: 700; fill: #6E2233; }
+.course-svg .c-cb { font-size: 12px; font-weight: 800; fill: #C4320A; }
+@media (max-width: 720px) { /* 좁은 화면: 그래프가 축소되므로 글자를 SVG 단위로 키움 */
+  .course-svg .c-ax, .course-svg .c-thr { font-size: 21px; }
+  .course-svg .c-room { font-size: 19px; }
+  .course-svg .c-cb { font-size: 21px; }
+}
+.course-notes { margin: .5rem 0 0; padding-left: 1.2rem; font-size: .9rem; }
+.course-notes li { margin: .2rem 0; }
 .persona { padding: 1.1rem 1.3rem; border-left: 5px solid var(--gold); }
 .persona q { font-family: var(--serif); font-size: 1.05rem; }
 .tests li.bad { color: var(--danger); }
@@ -3762,6 +3784,17 @@ function deterPoints() {
   return Math.max(S.deterMax || 0, Math.min(5, Math.max(0, raw)));
 }
 
+/* 환자 경과 기록: 결과 화면 경과 그래프용. 20초마다, 악화 점수 0.1 이상 변화, 구간 이동 시 표본 저장 */
+function recordCourse(points, force) {
+  const t = Math.round(elapsedMs() / 1000);
+  const room = S.plan[S.idx];
+  const course = S.course || [];
+  const last = course[course.length - 1];
+  if (!force && last && t - last.t < 20 && Math.abs(points - last.p) < 0.1 && room === last.r) return;
+  if (last && last.t === t) return;
+  setS({ course: course.concat([{ t, p: Math.round(points * 100) / 100, r: room }]).slice(-600) });
+}
+
 /* ----- 통계 ----- */
 function gradedPuzzles(room) {
   return room.puzzles.filter((p) => p.graded !== false);
@@ -3850,6 +3883,7 @@ function updateMonitor() {
   const idle = !S;
   const points = idle ? 0 : S.finished ? (S.deterMax || 0) : deterPoints();
   if (!idle && !S.finished && points - (S.deterMax || 0) > 0.05) setS({ deterMax: points });
+  if (!idle && !S.finished) recordCourse(points);
   const v = vitalsAt(points);
   currentVitals = v;
   const parts = CORE.news2Breakdown(v);
@@ -4513,6 +4547,7 @@ function goNextSection() {
 }
 function finishGame() {
   closeSectionTimer();
+  recordCourse(deterPoints(), true);
   setS({ finished: true, elapsedMs: elapsedMs(), runningSince: null, idx: S.plan.length - 1 });
   Sound.unlock();
   renderResult();
@@ -4557,6 +4592,100 @@ function resultSummary() {
   return r;
 }
 
+/* D. 숫자 카드: 시간·정확도·도움 3묶음, 상태 색(ok·warn·bad) */
+function kpiGroups(r) {
+  const budget = budgetSec();
+  const att = r.sections.reduce((t, x) => t + x.attempts, 0), sol = r.sections.reduce((t, x) => t + x.solved, 0);
+  const rooms = Math.max(1, S.plan.length), hpr = r.hints / rooms;
+  const st = (lv) => ({ ok: '양호', warn: '주의', bad: '개선 필요' })[lv];
+  const timeLv = r.used <= budget ? 'ok' : r.used <= budget * 1.2 ? 'warn' : 'bad';
+  const accLv = r.accuracy === null ? 'warn' : r.accuracy >= 70 ? 'ok' : r.accuracy >= 50 ? 'warn' : 'bad';
+  const hintLv = hpr <= 1 ? 'ok' : hpr <= 2 ? 'warn' : 'bad';
+  const card = (lv, icon, title, big, rows, note) => h('div', { class: 'kgroup glass lv-' + lv },
+    h('div', { class: 'kg-head' }, h('span', {}, icon + ' ' + title), h('span', { class: 'kg-lv' }, st(lv))),
+    h('div', { class: 'kg-big' }, big),
+    h('dl', { class: 'kg-rows' }, ...rows.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
+    h('div', { class: 'kg-note' }, note));
+  return h('div', { class: 'kgroups' },
+    card(timeLv, '⏱', '시간', fmtTime(r.used),
+      [['제한 시간', fmtTime(budget)], ['순수 풀이', fmtTime(r.used - S.penaltySec)], ['페널티', '+' + fmtTime(S.penaltySec)]],
+      '양호: 제한 시간 내 · 주의: 20% 이내 초과'),
+    card(accLv, '🎯', '정확도', r.accuracy === null ? '—' : r.accuracy + '%',
+      [['정답 / 제출', sol + ' / ' + att + '회'], ['오답 제출', S.wrongTotal + '회']],
+      '양호: 70% 이상 · 주의: 50~69%'),
+    card(hintLv, '💡', '도움', r.hints + '회',
+      [['구간당 평균', hpr.toFixed(1) + '회'], ['구간 수', rooms + '개']],
+      '양호: 구간당 1회 이하 · 주의: 2회 이하'));
+}
+
+/* C. 환자 경과 그래프: 기록된 악화 점수를 NEWS2로 환산해 구간별로 표시 */
+function courseChart() {
+  const pts = S.course || [];
+  const wrap = (...kids) => h('section', { class: 'puzzle glass course' }, h('h3', {}, '📈 환자 경과 (NEWS2)'), ...kids);
+  if (pts.length < 2) return wrap(h('p', { class: 'small' }, '이 게임에는 경과 기록이 없습니다. (경과 기록 기능이 추가되기 전에 시작한 게임)'));
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, attrs, ...kids) => {
+    const el = document.createElementNS(NS, tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, v));
+    kids.forEach((c) => el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c));
+    return el;
+  };
+  const news = (p) => CORE.calcNEWS2(vitalsAt(p));
+  const W = 800, H = 250, L = 34, R = 14, T = 30, B = 28, yMax = 18;
+  const tMax = Math.max(1, pts[pts.length - 1].t);
+  const x = (t) => L + (t / tMax) * (W - L - R);
+  const y = (n) => T + (1 - Math.min(n, yMax) / yMax) * (H - T - B);
+  // 구간 나누기
+  const segs = [];
+  pts.forEach((q, i) => {
+    const cur = segs[segs.length - 1];
+    if (!cur || cur.r !== q.r) segs.push({ r: q.r, i0: i, i1: i }); else cur.i1 = i;
+  });
+  segs.forEach((g, k) => {
+    g.t0 = k === 0 ? 0 : pts[g.i0].t;
+    g.t1 = k < segs.length - 1 ? pts[segs[k + 1].i0].t : tMax;
+    g.n0 = news(pts[Math.max(0, g.i0 - 1)].p);
+    g.n1 = news(pts[k < segs.length - 1 ? segs[k + 1].i0 : g.i1].p);
+  });
+  const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, class: 'course-svg', role: 'img', 'aria-label': '게임 경과 시간에 따른 환자 NEWS2 점수 변화' });
+  // 위험도 띠: 0~4 낮음, 5~6 중간, 7 이상 높음(NEWS2 임상 대응 기준)
+  [[0, 5, '#ECFDF3'], [5, 7, '#FFF4DE'], [7, yMax, '#FDECE7']].forEach(([a, b, c]) =>
+    svg.appendChild(sv('rect', { x: L, y: y(b), width: W - L - R, height: y(a) - y(b), fill: c })));
+  [[5, '중간 위험 5', '#B45309', 'below'], [7, '높은 위험 7', '#C4320A', 'above']].forEach(([n, t, c, pos]) => { // 두 표시가 겹치지 않게 7은 선 위, 5는 선 아래
+    svg.appendChild(sv('line', { x1: L, x2: W - R, y1: y(n), y2: y(n), stroke: c, 'stroke-dasharray': '4 4', 'stroke-width': 1 }));
+    svg.appendChild(sv('text', { x: W - R - 4, y: y(n), dy: pos === 'above' ? '-0.35em' : '1.05em', 'text-anchor': 'end', class: 'c-thr', fill: c }, t));
+  });
+  [0, 5, 10, 15].forEach((n) => svg.appendChild(sv('text', { x: L - 6, y: y(n) + 4, 'text-anchor': 'end', class: 'c-ax' }, String(n))));
+  // 구간 경계와 이름
+  segs.forEach((g, k) => {
+    if (k > 0) svg.appendChild(sv('line', { x1: x(g.t0), x2: x(g.t0), y1: T - 6, y2: H - B, stroke: '#9AA0A8', 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
+    const wpx = x(g.t1) - x(g.t0);
+    const room = ROOM_BY_ID[g.r];
+    if (room && wpx > 46) svg.appendChild(sv('text', { x: (x(g.t0) + x(g.t1)) / 2, y: T - 12, 'text-anchor': 'middle', class: 'c-room' }, room.short || room.name));
+  });
+  // 선과 면
+  const line = pts.map((q) => `${x(q.t).toFixed(1)},${y(news(q.p)).toFixed(1)}`);
+  svg.appendChild(sv('polygon', { points: `${x(0)},${y(0)} ${line.join(' ')} ${x(tMax)},${y(0)}`, fill: 'rgba(110,34,51,.10)' }));
+  svg.appendChild(sv('polyline', { points: line.join(' '), fill: 'none', stroke: '#6E2233', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }));
+  // 코드 블루 지점
+  const cb = pts.find((q) => q.p >= 5);
+  if (cb) {
+    svg.appendChild(sv('circle', { cx: x(cb.t), cy: y(news(cb.p)), r: 6, fill: '#C4320A', stroke: '#fff', 'stroke-width': 2 }));
+    svg.appendChild(sv('text', { x: Math.min(x(cb.t), W - R - 80), y: y(news(cb.p)) - 10, class: 'c-cb' }, 'CODE BLUE ' + fmtTime(cb.t)));
+  }
+  svg.appendChild(sv('text', { x: L, y: H - 8, class: 'c-ax' }, '0:00'));
+  svg.appendChild(sv('text', { x: W - R, y: H - 8, 'text-anchor': 'end', class: 'c-ax' }, fmtTime(tMax)));
+  svg.appendChild(sv('text', { x: (L + W - R) / 2, y: H - 8, 'text-anchor': 'middle', class: 'c-ax' }, '게임 경과 시간 (페널티 제외)'));
+  // 해석 문장
+  const worst = segs.slice().sort((a, b) => (b.n1 - b.n0) - (a.n1 - a.n0))[0];
+  const peak = pts.reduce((m, q) => (q.p > m.p ? q : m), pts[0]);
+  const notes = [h('li', {}, '최고 NEWS2 ', h('b', {}, String(news(peak.p)) + '점'), ' (모의 시각 ' + simClock(peak.p) + ', ' + (news(peak.p) >= 7 ? '긴급 대응 수준' : news(peak.p) >= 5 ? '긴급 평가 수준' : '낮은 위험') + ')')];
+  if (worst && worst.n1 > worst.n0) notes.push(h('li', {}, '가장 크게 악화된 구간: ', h('b', {}, (ROOM_BY_ID[worst.r] || {}).name || worst.r), ` (NEWS2 ${worst.n0} → ${worst.n1}, +${worst.n1 - worst.n0})` + (worst.n1 >= 5 ? ' — 이 구간의 지연·오답을 먼저 되짚어 보세요.' : '')));
+  else notes.push(h('li', {}, '어느 구간에서도 NEWS2가 오르지 않았습니다. 조기 대응이 잘 이루어졌습니다.'));
+  return wrap(h('p', { class: 'small' }, '시간이 지나거나 오답을 내면 환자가 악화되고, 정답을 맞히면 악화 속도가 늦춰집니다(한 번 악화된 상태는 되돌아가지 않음). 배경색은 NEWS2 임상 대응 기준(5점 이상 긴급 평가, 7점 이상 긴급 대응)입니다.'),
+    svg, h('ul', { class: 'course-notes' }, ...notes));
+}
+
 function timeBar(used, budget) {
   const span = Math.max(used, budget) || 1;
   const inPct = (Math.min(used, budget) / span) * 100, overPct = (Math.max(0, used - budget) / span) * 100;
@@ -4575,7 +4704,6 @@ function confetti() {
 }
 function renderResult() {
   const r = resultSummary();
-  const kpi = (k, v) => h('div', { class: 'kpi glass' }, h('div', { class: 'k' }, k), h('div', { class: 'v' }, v));
   const secTable = h('table', { class: 'res' },
     h('thead', {}, h('tr', {}, h('th', {}, '구간'), h('th', {}, '소요 시간'), h('th', {}, '정답률'), h('th', {}, '힌트'))),
     h('tbody', {}, ...r.sections.map((s) => h('tr', {},
@@ -4606,12 +4734,8 @@ function renderResult() {
           ...[0, 1, 2].map((i) => h('span', { class: i < r.stars ? 'on' : '', style: '--d:' + (i * 0.25) + 's' }, '★'))),
         h('ul', { class: 'criteria' }, ...r.criteria.map((c) => h('li', { class: c.ok ? 'ok' : 'no' }, (c.ok ? '✓ ' : '✗ ') + c.label)))),
       timeBar(r.used, budgetSec())),
-    h('div', { class: 'res-grid' },
-      kpi('총 소요 시간(페널티 포함)', fmtTime(r.used)),
-      kpi('제한 시간', fmtTime(budgetSec())),
-      kpi('사용한 힌트', r.hints + '회'),
-      kpi('페널티', fmtTime(S.penaltySec)),
-      kpi('오답 제출', S.wrongTotal + '회')),
+    kpiGroups(r),
+    courseChart(),
     h('section', { class: 'persona glass' }, h('div', { class: 'small' }, 'AI 공존 시대에 우리가 될 간호사'),
       h('h3', { style: 'margin:.3rem 0' }, r.persona.title), r.persona.line ? h('q', {}, r.persona.line) : null),
     h('section', { class: 'puzzle glass' }, h('h3', {}, '구간별 기록'), secTable),
@@ -4634,7 +4758,9 @@ function savePng() {
     const peopleRows = [];
     for (let i = 0; i < people.length; i += 3) peopleRows.push(people.slice(i, i + 3).join('   '));
     const shift = peopleRows.length * 30;
-    const H = 540 + shift + r.sections.length * rowH + Math.ceil(r.chapters.length / 2) * rowH;
+    const course = S.course || [];
+    const chartH = course.length >= 2 ? 230 : 0;
+    const H = 540 + shift + chartH + r.sections.length * rowH + Math.ceil(r.chapters.length / 2) * rowH;
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const c = cv.getContext('2d');
@@ -4661,6 +4787,21 @@ function savePng() {
     txt('☆☆☆'.slice(0, 3 - r.stars), sx + r.stars * 30, 277, '700 30px ' + sans, '#C9C1B5');
     txt(r.criteria.map((x) => (x.ok ? '✓ ' : '✗ ') + x.label).join('    '), 60, 305, '500 16px ' + sans, '#5F636B');
     let y = 350;
+    if (chartH) { // 환자 경과(NEWS2) 미니 그래프
+      txt('환자 경과 (NEWS2)', 60, y, '700 24px ' + serif, '#2A2D33');
+      const gx = 100, gw = W - 160, gy = y + 20, gh = 160, yMax = 18, tMax = Math.max(1, course[course.length - 1].t);
+      const yy = (n) => gy + (1 - Math.min(n, yMax) / yMax) * gh, xx = (t) => gx + (t / tMax) * gw;
+      [[0, 5, '#ECFDF3'], [5, 7, '#FFF4DE'], [7, yMax, '#FDECE7']].forEach(([a, b, col]) => { c.fillStyle = col; c.fillRect(gx, yy(b), gw, yy(a) - yy(b)); });
+      [[5, '#B45309'], [7, '#C4320A']].forEach(([n, col]) => txt(String(n), gx - 22, yy(n) + 5, '600 14px ' + sans, col));
+      txt('0', gx - 22, yy(0) + 5, '600 14px ' + sans, '#5F636B');
+      c.strokeStyle = '#6E2233'; c.lineWidth = 3; c.lineJoin = 'round'; c.beginPath();
+      course.forEach((q, i) => { const px = xx(q.t), py = yy(CORE.calcNEWS2(vitalsAt(q.p))); if (i) c.lineTo(px, py); else c.moveTo(px, py); });
+      c.stroke();
+      txt('0:00', gx, gy + gh + 20, '500 14px ' + sans, '#5F636B');
+      c.font = '500 14px ' + sans;
+      txt(fmtTime(tMax), gx + gw - c.measureText(fmtTime(tMax)).width, gy + gh + 20, '500 14px ' + sans, '#5F636B');
+      y += chartH;
+    }
     txt('구간별 기록', 60, y, '700 24px ' + serif, '#2A2D33'); y += 36;
     r.sections.forEach((s) => {
       txt(s.name, 70, y, '500 19px ' + sans, '#2A2D33');
