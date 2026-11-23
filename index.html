@@ -414,6 +414,7 @@ table.res th { color: var(--primary); }
 .kgroup.lv-ok { border-top-color: #2F855A; } .kgroup.lv-warn { border-top-color: #D97706; } .kgroup.lv-bad { border-top-color: var(--danger); }
 .kg-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--ink); }
 .kg-lv { font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; }
+.lv-na .kg-lv { color: var(--muted); background: var(--surface-2); } .lv-na .kg-big { color: var(--muted); }
 .lv-ok .kg-lv { color: #276749; background: #F0FDF4; } .lv-warn .kg-lv { color: #B45309; background: #FFF6E5; } .lv-bad .kg-lv { color: var(--danger); background: var(--danger-soft); }
 .kg-big { font: 700 2rem var(--mono); margin: .25rem 0 .35rem; }
 .lv-ok .kg-big { color: #276749; } .lv-warn .kg-big { color: #B45309; } .lv-bad .kg-big { color: var(--danger); }
@@ -488,6 +489,7 @@ table.res th { color: var(--primary); }
 .glass.c-ch { --card-accent: #0F766E; }            /* 장별 취약 영역: 청록 */
 .glass.c-test { --card-accent: #475569; }
 .glass.persona { --card-accent: var(--gold); border-left-width: 4px; }
+.glass.kgroup.lv-na { --card-accent: #9AA0A8; }
 .glass.result-hero.tier-good, .glass.kgroup.lv-ok { --card-accent: #2F855A; }
 .glass.result-hero.tier-warn, .glass.kgroup.lv-warn { --card-accent: #D97706; }
 .glass.result-hero.tier-bad, .glass.kgroup.lv-bad { --card-accent: var(--danger); }
@@ -4657,9 +4659,9 @@ function kpiGroups(r) {
   const budget = budgetSec();
   const att = r.sections.reduce((t, x) => t + x.attempts, 0), sol = r.sections.reduce((t, x) => t + x.solved, 0);
   const rooms = Math.max(1, S.plan.length), hpr = r.hints / rooms;
-  const st = (lv) => ({ ok: '양호', warn: '주의', bad: '개선 필요' })[lv];
+  const st = (lv) => ({ ok: '양호', warn: '주의', bad: '개선 필요', na: '기록 없음' })[lv];
   const timeLv = r.used <= budget ? 'ok' : r.used <= budget * 1.2 ? 'warn' : 'bad';
-  const accLv = r.accuracy === null ? 'warn' : r.accuracy >= 70 ? 'ok' : r.accuracy >= 50 ? 'warn' : 'bad';
+  const accLv = r.accuracy === null ? 'na' : r.accuracy >= 70 ? 'ok' : r.accuracy >= 50 ? 'warn' : 'bad';
   const hintLv = hpr <= 1 ? 'ok' : hpr <= 2 ? 'warn' : 'bad';
   const card = (lv, icon, title, big, rows, note) => h('div', { class: 'kgroup glass lv-' + lv },
     h('div', { class: 'kg-head' }, h('span', {}, icon + ' ' + title), h('span', { class: 'kg-lv' }, st(lv))),
@@ -5075,7 +5077,7 @@ function openTeacherPanel() {
 
 /* ===== 07b-roster.js — 대응팀 등록: 반 · 학번 · 성명 (조원 1~5명) =====
  * 입력값은 이 기기의 localStorage에만 저장된다(외부 전송 없음).
- * 공용 태블릿이면 수업 후 교수자 메뉴의 「진행 초기화」로 지운다. */
+ * 공용 태블릿이면 수업 후 헤더의 「🔄 초기화」(또는 교수자 메뉴의 「🔄 진행 초기화」)로 지운다. */
 
 const ROSTER = Object.freeze({
   maxMembers: 5,
@@ -5300,7 +5302,7 @@ function updateHeader() {
   $('#resetBtn').classList.toggle('hidden', !S && !storage.get(STORE_KEY, null)); // 지울 기록이 있을 때만 표시
   if (!S) { timer.textContent = '--:--'; hc.textContent = '0'; return; }
   const rem = remainingSec();
-  timer.textContent = S.finished ? fmtTime(usedSec()) : fmtTime(rem);
+  timer.textContent = S.finished ? fmtTime(usedSec()) : rem < 0 ? '+' + fmtTime(-rem) : fmtTime(rem); // 초과 시간은 '+분:초'
   timer.previousElementSibling.textContent = S.finished ? '총 소요' : rem < 0 ? '초과 시간' : '남은 시간';
   timer.classList.toggle('over', !S.finished && rem < 0);
   timer.classList.toggle('low', !S.finished && rem >= 0 && rem < 300);
