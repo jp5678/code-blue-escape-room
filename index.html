@@ -108,7 +108,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .badge.red { color: var(--danger); background: var(--danger-soft); border-color: #FCA5A5; }
 .topbar .badge { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .35); }
 
-/* EMR 상태 스트립: 정상(초록·✓·실선) / 잠김(빨강·🔒·흐르는 사선 경고 줄무늬). 하위 시스템 칩으로 복구 현황 표시 */
+/* EMR 상태 스트립: 가동(초록·✓·실선) / 잠김(빨강·🔒·흐르는 사선 줄무늬). 하위 시스템 칩으로 복구 현황 표시. "정상"은 환자 상태와 혼동되므로 시스템 상태에 쓰지 않음 */
 .emr-status { max-width: 1880px; margin: 12px auto 0; padding: 0 1.25rem; }
 .emr-strip { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; padding: .4rem .55rem; border-radius: 12px;
   background: #ECFDF3; border: 1px solid #A7E3BE; border-left: 5px solid #2F855A; transition: background .3s, border-color .3s; }
@@ -163,7 +163,7 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .mon-chip { flex: 1 1 45%; border-radius: 8px; padding: .3rem .55rem; font-size: .78rem; border: 1px solid #34373F; background: #1E2025; }
 .mon-chip b { font-size: 1rem; }
 .mon-chip .small { color: #A3A7B0; }
-/* 잠김(사용 불가)과 입력 끊김(간헐 신호)을 구분: 잠김은 회색·사선·'--'로 고정 표시(깜빡임 없음), 입력 끊김은 빨강 깜빡임 */
+/* 잠김(사용 불가)과 입력 끊김(간헐 신호)을 색·무늬로 구분: 잠김은 회색·사선·'--', 입력 끊김은 빨강. 움직임은 아이콘 고리 맥동으로 통일 */
 .mon-chip.locked { color: #9CA3AF; border: 1px dashed #6B7280;
   background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .06) 0 6px, transparent 6px 12px), #1A1C21; }
 .mon-ic { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: .72rem; font-weight: 400; vertical-align: middle; }
@@ -3947,8 +3947,8 @@ function updateMonitor() {
     esm.replaceChildren('ESM(패혈증 예측 AI) 경보 ', h('b', {}, '●'), h('br'), h('span', { class: 'small' }, '입력 복구 · 보조 정보'));
   }
   $('#monitor').classList.toggle('alarm', points >= 4);
-  // 상단 바 아래 EMR 상태 스트립: 잠김(빨강·🔒·줄무늬) / 정상(초록·✓), 하위 시스템별 복구 현황
-  // 게임 시작 전(idle)은 스토리·모니터와 같이 잠김, 종료 후엔 정상
+  // 상단 바 아래 EMR 상태 스트립: 잠김(빨강·🔒·줄무늬) / 가동(초록·✓), 하위 시스템별 복구 현황
+  // 게임 시작 전(idle)은 스토리·모니터와 같이 잠김, 종료 후엔 가동
   const newsOk = !idle && (S.finished || news2Unlocked());
   const esmOk = !idle && (S.finished || esmFixed());
   const emrLocked = !newsOk || !esmOk;
