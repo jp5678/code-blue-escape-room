@@ -396,7 +396,7 @@ table.res th { color: var(--primary); }
 
 </style>
 </head>
-<body>
+<body class="emr-locked">
 <script>
 /* =====================================================================
  * ROOMS — 퍼즐 설정 객체 (빌드 산출물: 원본은 src/rooms.js)
@@ -3169,9 +3169,9 @@ const ROOMS = {
 </header>
 <div class="emr-status" id="emrStatus" role="status" aria-live="polite">
   <div class="emr-strip">
-    <span class="emr-pill"><span class="emr-icon" id="emrIcon" aria-hidden="true">✓</span><span id="emrText">EMR 정상</span></span>
-    <span class="emr-sys" id="emrNews">NEWS2 ✓ 정상</span>
-    <span class="emr-sys" id="emrEsm">ESM ✓ 정상</span>
+    <span class="emr-pill"><span class="emr-icon" id="emrIcon" aria-hidden="true">🔒</span><span id="emrText">EMR 잠김</span></span>
+    <span class="emr-sys bad" id="emrNews">NEWS2 🔒 잠김</span>
+    <span class="emr-sys bad" id="emrEsm">ESM ⚠ 입력 끊김</span>
     <span class="emr-bar" aria-hidden="true"></span>
   </div>
 </div>
@@ -3845,8 +3845,9 @@ function updateMonitor() {
   }
   $('#monitor').classList.toggle('alarm', points >= 4);
   // 상단 바 아래 EMR 상태 스트립: 잠김(빨강·🔒·줄무늬) / 정상(초록·✓), 하위 시스템별 복구 현황
-  const newsOk = idle || S.finished || news2Unlocked();
-  const esmOk = idle || S.finished || esmFixed();
+  // 게임 시작 전(idle)은 스토리·모니터와 같이 잠김, 종료 후엔 정상
+  const newsOk = !idle && (S.finished || news2Unlocked());
+  const esmOk = !idle && (S.finished || esmFixed());
   const emrLocked = !newsOk || !esmOk;
   document.body.classList.toggle('emr-locked', emrLocked);
   $('#emrIcon').textContent = emrLocked ? '🔒' : '✓';
