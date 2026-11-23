@@ -417,6 +417,10 @@ table.res th { color: var(--primary); }
   .course-svg .c-room { font-size: 19px; }
   .course-svg .c-cb { font-size: 21px; }
 }
+.course-svg .c-ev { cursor: pointer; outline: none; }
+.course-svg .c-ev:hover circle, .course-svg .c-ev:focus-visible circle, .course-svg .c-ev.sel circle { fill: rgba(110, 34, 51, .16); stroke: #6E2233; stroke-width: 1.5; }
+.ev-detail { margin-top: .45rem; padding: .5rem .75rem; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); font-size: .88rem; min-height: 2.4rem; }
+.ev-detail .ev-time { font-family: var(--mono); font-weight: 700; color: var(--primary); }
 .course-legend { font-size: .8rem; color: var(--muted); margin-top: .3rem; }
 .course-legend .lg-w { color: #C4320A; font-weight: 800; } .course-legend .lg-h { color: #E0A82E; margin-left: .4rem; }
 .course-notes { margin: .5rem 0 0; padding-left: 1.2rem; font-size: .9rem; }
@@ -3798,8 +3802,9 @@ function recordCourse(points, force) {
 }
 
 /* 오답(w)·힌트(h) 시점 기록: 경과 그래프에 표시 */
-function logEvent(k) {
-  setS({ events: (S.events || []).concat([{ t: Math.round(elapsedMs() / 1000), k, r: S.plan[S.idx] }]).slice(-600) });
+function logEvent(k, extra) {
+  const e = Object.assign({ t: Math.round(elapsedMs() / 1000), k, r: S.plan[S.idx] }, extra || {});
+  setS({ events: (S.events || []).concat([e]).slice(-600) });
 }
 
 /* ----- 통계 ----- */
@@ -4470,7 +4475,7 @@ function submitPuzzle(room, puz) {
   }
   patchPuzzle(key, { attempts: st.attempts + 1, wrong: st.wrong + 1 });
   setS({ wrongTotal: S.wrongTotal + 1 });
-  logEvent('w');
+  logEvent('w', { pz: puz.id, ok: okCount, n: fields.length, door: !!puz.isDoor });
   Sound.wrong();
   const msg = puz.isDoor ? '🔒 비밀번호가 틀렸습니다. 경보가 울립니다!'
     : fields.length > 1 ? '✖ ' + fields.length + '개 항목 중 ' + okCount + '개 정답입니다. 다시 확인하세요. (오답은 환자 상태를 악화시킵니다)'
@@ -4493,7 +4498,7 @@ function useHint(room, puz) {
   const pen = DATA.config.hintPenaltySec[st.hints];
   patchPuzzle(key, { hints: st.hints + 1 });
   addPenalty(pen);
-  logEvent('h');
+  logEvent('h', { pz: puz.id, lv: st.hints + 1, pen });
   Sound.click();
   renderSection();
   setFeedback('info', '힌트 사용: +' + pen / 60 + '분 페널티');
@@ -4679,10 +4684,36 @@ function courseChart() {
   // 오답(✕)·힌트(◆) 표시: 그 시점 직전 표본의 NEWS2 높이에 찍음
   const evs = S.events || [];
   const atT = (t) => { let q = pts[0]; for (const z of pts) { if (z.t <= t) q = z; else break; } return news(q.p); };
+  const detail = h('div', { class: 'ev-detail', 'aria-live': 'polite' }, evs.length ? '✕·◆ 표시를 누르면 그 시점의 기록이 여기에 나옵니다.' : '');
+  let selected = null;
+  const show = (g, e) => {
+    if (selected) selected.classList.remove('sel');
+    selected = g; g.classList.add('sel');
+    const room = ROOM_BY_ID[e.r];
+    const pz = room && e.pz ? room.puzzles.find((q) => q.id === e.pz) : null;
+    const where = (room ? room.name : e.r) + (pz ? ' · ' + pz.title : '');
+    const what = e.k === 'w'
+      ? (e.n ? (e.door ? '비밀번호 오답' : `오답 제출 — ${e.n}개 항목 중 ${e.ok}개 정답, ${e.n - e.ok}개 틀림`) : '오답 제출')
+      : (e.lv ? `힌트 ${e.lv}단계 사용 (+${Math.round((e.pen || 0) / 60)}분 페널티)` : '힌트 사용');
+    detail.replaceChildren(h('span', { class: 'ev-time' }, fmtTime(e.t)), ' ', h('b', {}, (e.k === 'w' ? '✕ ' : '◆ ') + what), h('br'), h('span', { class: 'small' }, where),
+      h('span', { class: 'small ev-ctx' }, ` · 그때 환자 NEWS2 ${atT(e.t)}점 (모의 시각 ${simClock((pts.filter((q) => q.t <= e.t).pop() || pts[0]).p)})`));
+  };
+  const onLine = (t) => { // 표시를 그려진 선 위에 놓기 위한 선형 보간 높이
+    for (let i = 1; i < pts.length; i++) if (pts[i].t >= t) {
+      const a = pts[i - 1], b = pts[i], f = b.t === a.t ? 1 : (t - a.t) / (b.t - a.t);
+      return news(a.p) + (news(b.p) - news(a.p)) * f;
+    }
+    return news(pts[pts.length - 1].p);
+  };
   evs.forEach((e) => {
-    const ex = x(Math.min(e.t, tMax)), ey = y(atT(e.t));
-    if (e.k === 'w') svg.appendChild(sv('path', { d: `M${ex - 4},${ey - 4}L${ex + 4},${ey + 4}M${ex + 4},${ey - 4}L${ex - 4},${ey + 4}`, stroke: '#C4320A', 'stroke-width': 2.2, 'stroke-linecap': 'round', class: 'c-ev' }));
-    else svg.appendChild(sv('path', { d: `M${ex},${ey - 6}L${ex + 5},${ey}L${ex},${ey + 6}L${ex - 5},${ey}Z`, fill: '#E0A82E', stroke: '#fff', 'stroke-width': 1, class: 'c-ev' }));
+    const ex = x(Math.min(e.t, tMax)), ey = y(onLine(e.t));
+    const g = sv('g', { class: 'c-ev c-ev-' + e.k, tabindex: '0', role: 'button', 'aria-label': fmtTime(e.t) + ' ' + (e.k === 'w' ? '오답' : '힌트') + ' 기록 보기' });
+    g.appendChild(sv('circle', { cx: ex, cy: ey, r: 11, fill: 'transparent' })); // 누르기 쉬운 영역
+    if (e.k === 'w') g.appendChild(sv('path', { d: `M${ex - 4},${ey - 4}L${ex + 4},${ey + 4}M${ex + 4},${ey - 4}L${ex - 4},${ey + 4}`, stroke: '#C4320A', 'stroke-width': 2.2, 'stroke-linecap': 'round' }));
+    else g.appendChild(sv('path', { d: `M${ex},${ey - 6}L${ex + 5},${ey}L${ex},${ey + 6}L${ex - 5},${ey}Z`, fill: '#E0A82E', stroke: '#fff', 'stroke-width': 1 }));
+    g.addEventListener('click', () => show(g, e));
+    g.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); show(g, e); } });
+    svg.appendChild(g);
   });
   // 코드 블루 지점
   const cb = pts.find((q) => q.p >= 5);
@@ -4705,7 +4736,8 @@ function courseChart() {
   if (wTop) notes.push(h('li', {}, '오답이 가장 많았던 구간: ', h('b', {}, (ROOM_BY_ID[wTop[0]] || {}).name || wTop[0]), ' (' + wTop[1] + '회)'));
   return wrap(h('p', { class: 'small' }, '시간이 지나거나 오답을 내면 환자가 악화되고, 정답을 맞히면 악화 속도가 늦춰집니다(한 번 악화된 상태는 되돌아가지 않음). 배경색은 NEWS2 임상 대응 기준(5점 이상 긴급 평가, 7점 이상 긴급 대응)입니다.'),
     svg,
-    evs.length ? h('div', { class: 'course-legend' }, h('span', { class: 'lg-w' }, '✕'), ' 오답 제출 ', h('span', { class: 'lg-h' }, '◆'), ' 힌트 사용 · 선의 계단은 시간 경과·오답으로 악화된 시점입니다.') : null,
+    evs.length ? h('div', { class: 'course-legend' }, h('span', { class: 'lg-w' }, '✕'), ' 오답 제출 ', h('span', { class: 'lg-h' }, '◆'), ' 힌트 사용 · 표시를 누르면(또는 Tab 후 Enter) 그 시점의 기록을 봅니다.') : null,
+    evs.length ? detail : null,
     h('ul', { class: 'course-notes' }, ...notes));
 }
 
@@ -4820,7 +4852,8 @@ function savePng() {
       c.strokeStyle = '#6E2233'; c.lineWidth = 3; c.lineJoin = 'round'; c.beginPath();
       course.forEach((q, i) => { const px = xx(q.t), py = yy(CORE.calcNEWS2(vitalsAt(q.p))); if (i) c.lineTo(px, py); else c.moveTo(px, py); });
       c.stroke();
-      const atT = (t) => { let q = course[0]; for (const z of course) { if (z.t <= t) q = z; else break; } return CORE.calcNEWS2(vitalsAt(q.p)); };
+      const nv = (q) => CORE.calcNEWS2(vitalsAt(q.p));
+      const atT = (t) => { for (let i = 1; i < course.length; i++) if (course[i].t >= t) { const a = course[i - 1], b = course[i], f = b.t === a.t ? 1 : (t - a.t) / (b.t - a.t); return nv(a) + (nv(b) - nv(a)) * f; } return nv(course[course.length - 1]); };
       (S.events || []).forEach((e) => {
         const ex = xx(Math.min(e.t, tMax)), ey = yy(atT(e.t));
         c.beginPath();
