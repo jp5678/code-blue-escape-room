@@ -162,9 +162,8 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 /* 잠김(사용 불가)과 입력 끊김(간헐 신호)을 구분: 잠김은 회색·사선·'--'로 고정 표시(깜빡임 없음), 입력 끊김은 빨강 깜빡임 */
 .mon-chip.locked { color: #9CA3AF; border: 1px dashed #6B7280;
   background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .06) 0 6px, transparent 6px 12px), #1A1C21; }
-.mon-chip.locked { animation: lockBlink 1.6s ease-in-out infinite; } /* 칩 전체가 천천히 깜빡임(ESM의 빠른 0.7초 점멸과 리듬으로 구분) */
-@keyframes lockBlink { 0%, 100% { opacity: 1; border-color: #EF4444; } 50% { opacity: .4; border-color: #6B7280; } }
-@media (prefers-reduced-motion: reduce) { .mon-chip.locked { animation: none; border-color: #B91C1C; } }
+.mon-chip.locked { animation: blink .7s steps(2) infinite; } /* ESM 칩과 같은 0.7초 점멸(구분은 색·무늬로) */
+@media (prefers-reduced-motion: reduce) { .mon-chip.locked, .mon-chip.flicker { animation: none; } }
 .mon-chip.locked .nv { font-family: var(--mono); color: #D1D5DB; letter-spacing: .08em; }
 .mon-chip.locked .lk { filter: grayscale(1); opacity: .85; }
 .mon-chip.locked .small { color: #9CA3AF; }
