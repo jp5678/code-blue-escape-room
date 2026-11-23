@@ -98,18 +98,27 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .badge.red { color: var(--danger); background: var(--danger-soft); border-color: #FCA5A5; }
 .topbar .badge { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .35); }
 
-/* EMR 상태등: 헤더에서 띄워 밝은 바탕 위에 표시. 평상시 6px 차분한 초록(정상), 잠금 시 6px 흐르는 무지개 바 */
-.emr-status { max-width: 1880px; margin: 12px auto 0; padding: 0 1.25rem; display: flex; align-items: center; gap: .55rem; font-size: .8rem; color: var(--muted); }
-.emr-dot { width: 10px; height: 10px; border-radius: 50%; background: #2F855A; flex: none; }
-.emr-text { white-space: nowrap; font-weight: 600; color: #276749; }
-.emr-bar { flex: 1; height: 6px; border-radius: 3px; background: #2F855A; }
-/* 잠금: 무지개 색이 왼쪽에서 오른쪽으로 계속 흐르는 바(글자는 빨간 경고 유지) */
-body.emr-locked .emr-dot, body.emr-locked .emr-bar {
-  background: linear-gradient(90deg, #EF4444, #F97316, #FACC15, #22C55E, #3B82F6, #6366F1, #A855F7, #EF4444);
-  background-size: 200% 100%; animation: emrRainbow 2.4s linear infinite;
+/* EMR 상태 스트립: 정상(초록·✓·실선) / 잠김(빨강·🔒·흐르는 사선 경고 줄무늬). 하위 시스템 칩으로 복구 현황 표시 */
+.emr-status { max-width: 1880px; margin: 12px auto 0; padding: 0 1.25rem; }
+.emr-strip { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; padding: .4rem .55rem; border-radius: 12px;
+  background: #ECFDF3; border: 1px solid #A7E3BE; border-left: 5px solid #2F855A; transition: background .3s, border-color .3s; }
+.emr-pill { display: inline-flex; align-items: center; gap: .4rem; padding: .18rem .7rem .18rem .35rem; border-radius: 999px;
+  background: #2F855A; color: #fff; font-weight: 800; font-size: .85rem; white-space: nowrap; }
+.emr-icon { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .22); font-size: .75rem; }
+.emr-sys { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; font-weight: 700; white-space: nowrap;
+  padding: .12rem .55rem; border-radius: 999px; border: 1px solid #A7E3BE; background: #fff; color: #276749; }
+.emr-sys.bad { color: #B91C1C; border-color: #FCA5A5; background: #FFF5F5; }
+.emr-bar { flex: 1 1 120px; height: 8px; border-radius: 4px; background: #2F855A; min-width: 80px; }
+body.emr-locked .emr-strip { background: #FEF2F2; border-color: #FCA5A5; border-left-color: #DC2626; }
+body.emr-locked .emr-pill { background: #DC2626; }
+body.emr-locked .emr-icon { animation: emrPulse 1.2s ease-in-out infinite; }
+body.emr-locked .emr-bar {
+  background: repeating-linear-gradient(135deg, #DC2626 0 10px, #FECACA 10px 20px);
+  background-size: 28.28px 100%; animation: emrStripe .8s linear infinite;
 }
-body.emr-locked .emr-text { color: #B91C1C; font-weight: 700; }
-@keyframes emrRainbow { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+@keyframes emrStripe { from { background-position: 0 0; } to { background-position: 28.28px 0; } }
+@keyframes emrPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .7); } 50% { box-shadow: 0 0 0 5px rgba(255, 255, 255, 0); } }
+@media (prefers-reduced-motion: reduce) { body.emr-locked .emr-bar, body.emr-locked .emr-icon { animation: none; } }
 
 /* ----- 레이아웃: 업무 화면(좌) + 스테이션 장비(우) ----- */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 480px; gap: 1.25rem; padding: 1.25rem; max-width: 1880px; margin: 0 auto; }
@@ -3153,9 +3162,15 @@ const ROOMS = {
   <div class="stat" title="사용한 힌트 수"><span class="k">힌트</span><span class="v" id="hintCount">0</span></div>
   <button class="icon-btn" id="muteBtn" type="button" aria-pressed="false" title="음소거 (M)">🔊</button>
   <button class="icon-btn hidden" id="teacherBtn" type="button" title="교수자 메뉴">🎓 교수자</button>
+  <a class="icon-btn manual-link" href="manual.html" target="_blank" rel="noopener" title="사용 설명서 (새 탭)">📘 사용 설명서</a>
 </header>
 <div class="emr-status" id="emrStatus" role="status" aria-live="polite">
-  <span class="emr-dot" aria-hidden="true"></span><span class="emr-text" id="emrText">EMR 정상</span><span class="emr-bar" aria-hidden="true"></span>
+  <div class="emr-strip">
+    <span class="emr-pill"><span class="emr-icon" id="emrIcon" aria-hidden="true">✓</span><span id="emrText">EMR 정상</span></span>
+    <span class="emr-sys" id="emrNews">NEWS2 ✓ 정상</span>
+    <span class="emr-sys" id="emrEsm">ESM ✓ 정상</span>
+    <span class="emr-bar" aria-hidden="true"></span>
+  </div>
 </div>
 
 <div class="layout">
@@ -3826,10 +3841,16 @@ function updateMonitor() {
     esm.replaceChildren('ESM(패혈증 예측 AI) 경보 ', h('b', {}, '●'), h('br'), h('span', { class: 'small' }, '입력 복구 · 보조 정보'));
   }
   $('#monitor').classList.toggle('alarm', points >= 4);
-  // 상단 바 아래 줄 = EMR 상태등: 잠금(복구 전)이면 굵은 빨강 깜빡임, 평상시는 더스티 로즈
-  const emrLocked = !idle && !S.finished && (!news2Unlocked() || !esmFixed());
+  // 상단 바 아래 EMR 상태 스트립: 잠김(빨강·🔒·줄무늬) / 정상(초록·✓), 하위 시스템별 복구 현황
+  const newsOk = idle || S.finished || news2Unlocked();
+  const esmOk = idle || S.finished || esmFixed();
+  const emrLocked = !newsOk || !esmOk;
   document.body.classList.toggle('emr-locked', emrLocked);
-  $('#emrText').textContent = emrLocked ? 'EMR 잠김 · NEWS2·ESM 복구 전' : 'EMR 정상';
+  $('#emrIcon').textContent = emrLocked ? '🔒' : '✓';
+  $('#emrText').textContent = emrLocked ? 'EMR 잠김' : 'EMR 정상';
+  const sys = (el, ok, name, bad) => { el.classList.toggle('bad', !ok); el.textContent = ok ? `${name} ✓ 정상` : `${name} ${bad}`; };
+  sys($('#emrNews'), newsOk, 'NEWS2', '🔒 잠김');
+  sys($('#emrEsm'), esmOk, 'ESM', '⚠ 입력 끊김');
 
   if (idle) return;
   const stage = Math.floor(points);
@@ -4878,8 +4899,7 @@ function renderStart() {
   const hero = h('section', { class: 'hero glass intro' },
     h('span', { class: 'badge gold' }, DATA.meta.subtitle),
     h('div', { class: 'hero-head' },
-      h('h2', {}, DATA.meta.title),
-      h('a', { class: 'btn gold manual-link', href: 'manual.html', target: '_blank', rel: 'noopener' }, '📘 사용 설명서 보기')),
+      h('h2', {}, DATA.meta.title)),
     h('p', { class: 'lead' }, '야간 근무 중 7병동 EMR이 사이버 공격 의심으로 잠겼다. 712호 ', h('b', {}, '김○○ 님(72세 남, 폐렴 입원 3일차)'),
       '의 활력징후는 점점 나빠지고, 패혈증 AI 경보(ESM)는 울렸다 꺼지기를 반복한다. 정보간호사 대응팀이 되어 각 공간의 시스템을 복구하고, 마지막에 담당의에게 SBAR로 보고하라.'),
     h('ul', { class: 'small hero-tips' },
