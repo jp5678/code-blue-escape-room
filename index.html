@@ -163,18 +163,14 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .mon-chip { flex: 1 1 45%; border-radius: 8px; padding: .3rem .55rem; font-size: .78rem; border: 1px solid #34373F; background: #1E2025; }
 .mon-chip b { font-size: 1rem; }
 .mon-chip .small { color: #A3A7B0; }
-/* 잠김(사용 불가)과 입력 끊김(간헐 신호)을 색·무늬로 구분: 잠김은 회색·사선·'--', 입력 끊김은 빨강. 움직임은 아이콘 고리 맥동으로 통일 */
-.mon-chip.locked { color: #9CA3AF; border: 1px dashed #6B7280;
-  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .06) 0 6px, transparent 6px 12px), #1A1C21; }
+/* 잠김(NEWS2)·입력 끊김(ESM)은 같은 빨간 경고 색. 고장 종류는 문구('--'·계산 모듈 잠김 / 입력 끊김)로 구분, 움직임은 아이콘 고리 맥동 */
+.mon-chip.locked, .mon-chip.flicker { color: #F87171; border-color: #B91C1C; background: rgba(127, 29, 29, .28); }
 .mon-ic { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: .72rem; font-weight: 400; vertical-align: middle; }
 /* 잠김·끊김 아이콘: 상단 상태줄과 같은 고리 맥동(1.2초). 칩 전체는 깜빡이지 않음 */
 .mon-chip.locked .mon-ic, .mon-chip.flicker .mon-ic { --ring: rgba(239, 68, 68, .75); background: rgba(239, 68, 68, .18); animation: emrPulse 1.2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .mon-chip.locked .mon-ic, .mon-chip.flicker .mon-ic { animation: none; } }
-.mon-chip.locked .nv { font-family: var(--mono); color: #D1D5DB; letter-spacing: .08em; }
-.mon-chip.locked .lk { filter: grayscale(1); opacity: .85; }
-.mon-chip.locked .small { color: #9CA3AF; }
-.mon-chip.flicker { color: #F87171; border-color: #B91C1C; background: rgba(127, 29, 29, .28); }
-.mon-chip.flicker .small { color: #FCA5A5; }
+.mon-chip.locked .nv { font-family: var(--mono); letter-spacing: .08em; }
+.mon-chip.locked .small, .mon-chip.flicker .small { color: #FCA5A5; }
 .mon-chip.lv-high { border-color: #EF4444; color: #FCA5A5; }
 .mon-chip.lv-medium { border-color: #F59E0B; color: #FCD34D; }
 .mon-chip.lv-low-medium, .mon-chip.lv-low { border-color: var(--gold); color: var(--gold); }
