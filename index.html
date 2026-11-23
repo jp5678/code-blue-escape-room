@@ -93,6 +93,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar .icon-btn { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); color: #fff; }
 .topbar .icon-btn:hover { background: rgba(255, 255, 255, .24); }
 .manual-link { text-decoration: none; white-space: nowrap; font-weight: 700; }
+/* 헤더 사용 설명서 버튼: ward-chip(7병동 간호스테이션)과 같은 크기·모양 */
+.manual-chip { font-size: .78rem; padding: .15rem .6rem; border-radius: 999px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .3); color: #fff; font-weight: 400; }
+.manual-chip:hover { background: rgba(255, 255, 255, .24); }
 .badge { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .55rem; border-radius: 999px; font-size: .75rem; border: 1px solid var(--line-strong); background: var(--surface-3); color: var(--primary); white-space: nowrap; }
 .badge.gold { color: var(--amber); background: var(--gold-soft); border-color: #E0CB9B; }
 .badge.red { color: var(--danger); background: var(--danger-soft); border-color: #FCA5A5; }
@@ -3162,7 +3165,7 @@ const ROOMS = {
   <div class="stat" title="사용한 힌트 수"><span class="k">힌트</span><span class="v" id="hintCount">0</span></div>
   <button class="icon-btn" id="muteBtn" type="button" aria-pressed="false" title="음소거 (M)">🔊</button>
   <button class="icon-btn hidden" id="teacherBtn" type="button" title="교수자 메뉴">🎓 교수자</button>
-  <a class="icon-btn manual-link" href="manual.html" target="_blank" rel="noopener" title="사용 설명서 (새 탭)">📘 사용 설명서</a>
+  <a class="manual-chip manual-link" href="manual.html" target="_blank" rel="noopener" title="사용 설명서 (새 탭)">📘 사용 설명서</a>
 </header>
 <div class="emr-status" id="emrStatus" role="status" aria-live="polite">
   <div class="emr-strip">
