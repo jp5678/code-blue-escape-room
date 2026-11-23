@@ -116,7 +116,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: #2F855A; color: #fff; font-weight: 800; font-size: .85rem; white-space: nowrap; }
 .emr-icon { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .22); font-size: .75rem; }
 .emr-sys { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; font-weight: 700; white-space: nowrap;
-  padding: .12rem .55rem; border-radius: 999px; border: 1px solid #2F855A; background: #2F855A; color: #fff; } /* 정상 칩: EMR 정상 배지와 같은 색 */
+  padding: .12rem .55rem; border-radius: 999px; border: 1px solid #2F855A; background: #2F855A; color: #fff; } /* 가동 칩: EMR 가동 배지와 같은 색 */
 .emr-sys .emr-ic { background: rgba(255, 255, 255, .22); }
 .emr-sys.bad { color: #fff; border-color: #DC2626; background: #DC2626; } /* 잠김 칩: EMR 잠김 배지와 같은 색 */
 .emr-bar { flex: 1 1 120px; height: 8px; border-radius: 4px; background: #2F855A; min-width: 80px; }
@@ -166,14 +166,15 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 /* 잠김(사용 불가)과 입력 끊김(간헐 신호)을 구분: 잠김은 회색·사선·'--'로 고정 표시(깜빡임 없음), 입력 끊김은 빨강 깜빡임 */
 .mon-chip.locked { color: #9CA3AF; border: 1px dashed #6B7280;
   background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .06) 0 6px, transparent 6px 12px), #1A1C21; }
-.mon-chip.locked { animation: blink .7s steps(2) infinite; } /* ESM 칩과 같은 0.7초 점멸(구분은 색·무늬로) */
-@media (prefers-reduced-motion: reduce) { .mon-chip.locked, .mon-chip.flicker { animation: none; } }
+.mon-ic { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: .72rem; font-weight: 400; vertical-align: middle; }
+/* 잠김·끊김 아이콘: 상단 상태줄과 같은 고리 맥동(1.2초). 칩 전체는 깜빡이지 않음 */
+.mon-chip.locked .mon-ic, .mon-chip.flicker .mon-ic { --ring: rgba(239, 68, 68, .75); background: rgba(239, 68, 68, .18); animation: emrPulse 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .mon-chip.locked .mon-ic, .mon-chip.flicker .mon-ic { animation: none; } }
 .mon-chip.locked .nv { font-family: var(--mono); color: #D1D5DB; letter-spacing: .08em; }
 .mon-chip.locked .lk { filter: grayscale(1); opacity: .85; }
 .mon-chip.locked .small { color: #9CA3AF; }
 .mon-chip.flicker { color: #F87171; border-color: #B91C1C; background: rgba(127, 29, 29, .28); }
 .mon-chip.flicker .small { color: #FCA5A5; }
-.mon-chip.flicker { animation: blink .7s steps(2) infinite; }
 .mon-chip.lv-high { border-color: #EF4444; color: #FCA5A5; }
 .mon-chip.lv-medium { border-color: #F59E0B; color: #FCD34D; }
 .mon-chip.lv-low-medium, .mon-chip.lv-low { border-color: var(--gold); color: var(--gold); }
@@ -3269,8 +3270,8 @@ const ROOMS = {
         <canvas class="ecg" id="ecg" width="600" height="110" aria-hidden="true"></canvas>
         <div class="vitals" id="vitals"></div>
         <div class="mon-foot">
-          <div class="mon-chip locked" id="newsChip" aria-label="NEWS2 계산 모듈 잠김, 점수 산출 불가">NEWS2(조기경보점수) <b class="nv">--</b> <span class="lk" aria-hidden="true">🔒</span><br><span class="small">계산 모듈 잠김 · 산출 불가</span></div>
-          <div class="mon-chip flicker" id="esmChip">ESM(패혈증 예측 AI) 경보 <b>⚠</b><br><span class="small">입력 끊김 · 깜빡임</span></div>
+          <div class="mon-chip locked" id="newsChip" aria-label="NEWS2 계산 모듈 잠김, 점수 산출 불가">NEWS2(조기경보점수) <b class="nv">--</b> <span class="lk mon-ic" aria-hidden="true">🔒</span><br><span class="small">계산 모듈 잠김 · 산출 불가</span></div>
+          <div class="mon-chip flicker" id="esmChip">ESM(패혈증 예측 AI) 경보 <span class="mon-ic" aria-hidden="true">⚠</span><br><span class="small">입력 끊김 · 경보 울렸다 꺼짐</span></div>
         </div>
         <div class="deter" title="환자 악화 진행도"><i id="deterBar" style="width:0%"></i></div>
       </div>
@@ -3954,14 +3955,14 @@ function updateMonitor() {
   document.body.classList.toggle('emr-locked', emrLocked);
   const icon = emrLocked ? '🔒' : '✓';
   if ($('#emrIcon').textContent !== icon) $('#emrIcon').textContent = icon;
-  $('#emrText').textContent = emrLocked ? 'EMR 잠김' : 'EMR 정상';
+  $('#emrText').textContent = emrLocked ? 'EMR 잠김' : 'EMR 가동'; // '정상'은 환자 상태로 오해될 수 있어 시스템 상태는 '가동'으로 표기
   // 상태가 바뀔 때만 다시 그림(매초 다시 그리면 아이콘 맥동 애니메이션이 처음부터 재시작됨)
   const sys = (el, ok, name, icon, word) => {
     const state = ok ? 'ok' : 'bad';
     if (el.dataset.state === state) return;
     el.dataset.state = state;
     el.classList.toggle('bad', !ok);
-    el.replaceChildren(name + ' ', h('span', { class: 'emr-ic', 'aria-hidden': 'true' }, ok ? '✓' : icon), ' ' + (ok ? '정상' : word));
+    el.replaceChildren(name + ' ', h('span', { class: 'emr-ic', 'aria-hidden': 'true' }, ok ? '✓' : icon), ' ' + (ok ? '가동' : word));
   };
   sys($('#emrNews'), newsOk, 'NEWS2', '🔒', '잠김');
   sys($('#emrEsm'), esmOk, 'ESM', '⚠', '입력 끊김');
