@@ -117,14 +117,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .emr-icon { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .22); font-size: .75rem; }
 .emr-sys { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; font-weight: 700; white-space: nowrap;
   padding: .12rem .55rem; border-radius: 999px; border: 1px solid #A7E3BE; background: #fff; color: #276749; }
-.emr-sys.bad { color: #B91C1C; border-color: #FCA5A5; background: #FFF5F5; }
+.emr-sys.bad { color: #fff; border-color: #DC2626; background: #DC2626; } /* 잠김 칩: EMR 잠김 배지와 같은 색 */
 .emr-bar { flex: 1 1 120px; height: 8px; border-radius: 4px; background: #2F855A; min-width: 80px; }
 body.emr-locked .emr-strip { background: #FEF2F2; border-color: #FCA5A5; border-left-color: #DC2626; }
 body.emr-locked .emr-pill { background: #DC2626; }
 body.emr-locked .emr-icon { --ring: rgba(255, 255, 255, .7); animation: emrPulse 1.2s ease-in-out infinite; }
-/* NEWS2·ESM 칩 아이콘도 EMR 배지와 같은 고리 맥동(흰 바탕이라 고리는 빨강) */
+/* NEWS2·ESM 칩 아이콘도 EMR 배지와 같은 색·고리 맥동 */
 .emr-ic { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: .72rem; }
-.emr-sys.bad .emr-ic { --ring: rgba(220, 38, 38, .6); background: #FEE2E2; animation: emrPulse 1.2s ease-in-out infinite; }
+.emr-sys.bad .emr-ic { --ring: rgba(255, 255, 255, .7); background: rgba(255, 255, 255, .22); animation: emrPulse 1.2s ease-in-out infinite; }
 body.emr-locked .emr-bar {
   background: repeating-linear-gradient(135deg, #DC2626 0 10px, #FECACA 10px 20px);
   background-size: 28.28px 100%; animation: emrStripe .8s linear infinite;
