@@ -121,14 +121,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .emr-bar { flex: 1 1 120px; height: 8px; border-radius: 4px; background: #2F855A; min-width: 80px; }
 body.emr-locked .emr-strip { background: #FEF2F2; border-color: #FCA5A5; border-left-color: #DC2626; }
 body.emr-locked .emr-pill { background: #DC2626; }
-body.emr-locked .emr-icon { animation: emrPulse 1.2s ease-in-out infinite; }
+body.emr-locked .emr-icon { --ring: rgba(255, 255, 255, .7); animation: emrPulse 1.2s ease-in-out infinite; }
+/* NEWS2·ESM 칩 아이콘도 EMR 배지와 같은 고리 맥동(흰 바탕이라 고리는 빨강) */
+.emr-ic { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: .72rem; }
+.emr-sys.bad .emr-ic { --ring: rgba(220, 38, 38, .6); background: #FEE2E2; animation: emrPulse 1.2s ease-in-out infinite; }
 body.emr-locked .emr-bar {
   background: repeating-linear-gradient(135deg, #DC2626 0 10px, #FECACA 10px 20px);
   background-size: 28.28px 100%; animation: emrStripe .8s linear infinite;
 }
 @keyframes emrStripe { from { background-position: 0 0; } to { background-position: 28.28px 0; } }
-@keyframes emrPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .7); } 50% { box-shadow: 0 0 0 5px rgba(255, 255, 255, 0); } }
-@media (prefers-reduced-motion: reduce) { body.emr-locked .emr-bar, body.emr-locked .emr-icon { animation: none; } }
+@keyframes emrPulse { 0%, 100% { box-shadow: 0 0 0 0 var(--ring); } 50% { box-shadow: 0 0 0 5px transparent; } }
+@media (prefers-reduced-motion: reduce) { body.emr-locked .emr-bar, body.emr-locked .emr-icon, .emr-sys.bad .emr-ic { animation: none; } }
 
 /* ----- 레이아웃: 업무 화면(좌) + 스테이션 장비(우) ----- */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 480px; gap: 1.25rem; padding: 1.25rem; max-width: 1880px; margin: 0 auto; }
@@ -3249,8 +3252,8 @@ const ROOMS = {
 <div class="emr-status" id="emrStatus" role="status" aria-live="polite">
   <div class="emr-strip">
     <span class="emr-pill"><span class="emr-icon" id="emrIcon" aria-hidden="true">🔒</span><span id="emrText">EMR 잠김</span></span>
-    <span class="emr-sys bad" id="emrNews">NEWS2 🔒 잠김</span>
-    <span class="emr-sys bad" id="emrEsm">ESM ⚠ 입력 끊김</span>
+    <span class="emr-sys bad" id="emrNews">NEWS2 <span class="emr-ic" aria-hidden="true">🔒</span> 잠김</span>
+    <span class="emr-sys bad" id="emrEsm">ESM <span class="emr-ic" aria-hidden="true">⚠</span> 입력 끊김</span>
     <span class="emr-bar" aria-hidden="true"></span>
   </div>
 </div>
@@ -3948,11 +3951,19 @@ function updateMonitor() {
   const esmOk = !idle && (S.finished || esmFixed());
   const emrLocked = !newsOk || !esmOk;
   document.body.classList.toggle('emr-locked', emrLocked);
-  $('#emrIcon').textContent = emrLocked ? '🔒' : '✓';
+  const icon = emrLocked ? '🔒' : '✓';
+  if ($('#emrIcon').textContent !== icon) $('#emrIcon').textContent = icon;
   $('#emrText').textContent = emrLocked ? 'EMR 잠김' : 'EMR 정상';
-  const sys = (el, ok, name, bad) => { el.classList.toggle('bad', !ok); el.textContent = ok ? `${name} ✓ 정상` : `${name} ${bad}`; };
-  sys($('#emrNews'), newsOk, 'NEWS2', '🔒 잠김');
-  sys($('#emrEsm'), esmOk, 'ESM', '⚠ 입력 끊김');
+  // 상태가 바뀔 때만 다시 그림(매초 다시 그리면 아이콘 맥동 애니메이션이 처음부터 재시작됨)
+  const sys = (el, ok, name, icon, word) => {
+    const state = ok ? 'ok' : 'bad';
+    if (el.dataset.state === state) return;
+    el.dataset.state = state;
+    el.classList.toggle('bad', !ok);
+    el.replaceChildren(name + ' ', h('span', { class: 'emr-ic', 'aria-hidden': 'true' }, ok ? '✓' : icon), ' ' + (ok ? '정상' : word));
+  };
+  sys($('#emrNews'), newsOk, 'NEWS2', '🔒', '잠김');
+  sys($('#emrEsm'), esmOk, 'ESM', '⚠', '입력 끊김');
 
   if (idle) return;
   const stage = Math.floor(points);
