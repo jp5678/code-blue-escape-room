@@ -159,9 +159,14 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .mon-chip { flex: 1 1 45%; border-radius: 8px; padding: .3rem .55rem; font-size: .78rem; border: 1px solid #34373F; background: #1E2025; }
 .mon-chip b { font-size: 1rem; }
 .mon-chip .small { color: #A3A7B0; }
-/* 잠김(계산 불가)·입력 끊김은 모두 이상 상태이므로 빨간 경고. 잠김은 고정, 입력 끊김은 깜빡임으로 구분 */
-.mon-chip.locked, .mon-chip.flicker { color: #F87171; border-color: #B91C1C; background: rgba(127, 29, 29, .28); }
-.mon-chip.locked .small, .mon-chip.flicker .small { color: #FCA5A5; }
+/* 잠김(사용 불가)과 입력 끊김(간헐 신호)을 구분: 잠김은 회색·사선·'--'로 고정 표시(깜빡임 없음), 입력 끊김은 빨강 깜빡임 */
+.mon-chip.locked { color: #9CA3AF; border: 1px dashed #6B7280;
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .06) 0 6px, transparent 6px 12px), #1A1C21; }
+.mon-chip.locked .nv { font-family: var(--mono); color: #D1D5DB; letter-spacing: .08em; }
+.mon-chip.locked .lk { filter: grayscale(1); opacity: .85; }
+.mon-chip.locked .small { color: #9CA3AF; }
+.mon-chip.flicker { color: #F87171; border-color: #B91C1C; background: rgba(127, 29, 29, .28); }
+.mon-chip.flicker .small { color: #FCA5A5; }
 .mon-chip.flicker { animation: blink .7s steps(2) infinite; }
 .mon-chip.lv-high { border-color: #EF4444; color: #FCA5A5; }
 .mon-chip.lv-medium { border-color: #F59E0B; color: #FCD34D; }
@@ -3258,7 +3263,7 @@ const ROOMS = {
         <canvas class="ecg" id="ecg" width="600" height="110" aria-hidden="true"></canvas>
         <div class="vitals" id="vitals"></div>
         <div class="mon-foot">
-          <div class="mon-chip locked" id="newsChip">NEWS2(조기경보점수) <b>🔒</b><br><span class="small">계산 모듈 잠김</span></div>
+          <div class="mon-chip locked" id="newsChip" aria-label="NEWS2 계산 모듈 잠김, 점수 산출 불가">NEWS2(조기경보점수) <b class="nv">--</b> <span class="lk" aria-hidden="true">🔒</span><br><span class="small">계산 모듈 잠김 · 산출 불가</span></div>
           <div class="mon-chip flicker" id="esmChip">ESM(패혈증 예측 AI) 경보 <b>⚠</b><br><span class="small">입력 끊김 · 깜빡임</span></div>
         </div>
         <div class="deter" title="환자 악화 진행도"><i id="deterBar" style="width:0%"></i></div>
@@ -3926,6 +3931,7 @@ function updateMonitor() {
   if (news2Unlocked()) {
     const r = CORE.news2Response(v);
     chip.className = 'mon-chip lv-' + r.level;
+    chip.removeAttribute('aria-label');
     chip.replaceChildren('NEWS2(조기경보점수) ', h('b', {}, String(r.total)), h('br'), h('span', { class: 'small' }, r.label));
   }
   const esm = $('#esmChip');
