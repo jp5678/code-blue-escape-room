@@ -361,6 +361,42 @@ table.res th { color: var(--primary); }
 .bar { height: 10px; border-radius: 5px; background: var(--surface-3); overflow: hidden; min-width: 80px; }
 .bar i { display: block; height: 100%; background: var(--primary-2); }
 .bar i.weak { background: var(--danger); }
+/* 결과 화면: 환자 결과 단계별(good·warn·bad) 색과 분위기 */
+.result-hero { position: relative; overflow: hidden; }
+.result-hero.tier-good { border-top-color: #2F855A; background: linear-gradient(135deg, #FFFFFF 0%, #EAF7EF 55%, #FBF4E4 100%); }
+.result-hero.tier-warn { border-top-color: #D97706; background: linear-gradient(135deg, #FFFFFF 0%, #FFF6E5 100%); }
+.result-hero.tier-bad { border-top-color: var(--danger); background: linear-gradient(135deg, #FFFFFF 0%, #FDEEE8 100%); }
+.rh-top { display: flex; align-items: center; gap: 1rem; }
+.rh-icon { font-size: 3.2rem; line-height: 1; flex: none; animation: rhPop .6s cubic-bezier(.2, 1.6, .4, 1) both; }
+.tier-bad .rh-icon { animation: rhPop .6s both, rhBlink 1.4s ease-in-out .6s 3; }
+.rh-eyebrow { font-size: .8rem; color: var(--muted); letter-spacing: .03em; }
+.result-hero h2 { margin: .1rem 0 .25rem; }
+.tier-good h2 { color: #276749; } .tier-warn h2 { color: #B45309; } .tier-bad h2 { color: var(--danger); }
+.rh-outcome { display: inline-block; font-size: .9rem; padding: .2rem .7rem; border-radius: 999px; background: #fff; border: 1px solid var(--line-strong); }
+.tier-good .rh-outcome b { color: #276749; } .tier-warn .rh-outcome b { color: #B45309; } .tier-bad .rh-outcome b { color: var(--danger); }
+.rh-score { display: flex; align-items: center; gap: .6rem 1.4rem; flex-wrap: wrap; margin: .8rem 0 .4rem; }
+.stars { font-size: 2.2rem; line-height: 1; letter-spacing: .1em; white-space: nowrap; }
+.stars span { color: #DDD6CC; display: inline-block; }
+.stars span.on { color: #E0A82E; text-shadow: 0 2px 6px rgba(224, 168, 46, .45); animation: rhPop .5s cubic-bezier(.2, 1.6, .4, 1) var(--d) both; }
+.criteria { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .35rem; }
+.criteria li { font-size: .8rem; font-weight: 600; padding: .15rem .6rem; border-radius: 999px; border: 1px solid; }
+.criteria li.ok { color: #276749; border-color: #A7E3BE; background: #F0FDF4; }
+.criteria li.no { color: var(--danger); border-color: #FCA5A5; background: #FFF5F5; }
+.tbar-wrap { margin-top: .5rem; }
+.tbar-label { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; font-size: .85rem; color: var(--muted); margin-bottom: .3rem; }
+.tbar-label b { font-family: var(--mono); color: var(--ink); }
+.tbar-label .in { color: #276749; font-weight: 700; } .tbar-label .over { color: var(--danger); font-weight: 700; }
+.tbar { position: relative; display: flex; height: 12px; border-radius: 6px; background: #EFEFF2; overflow: visible; }
+.tbar i { display: block; height: 100%; }
+.tbar i.in { background: #2F855A; border-radius: 6px 0 0 6px; }
+.tbar i.over { background: repeating-linear-gradient(135deg, var(--danger) 0 8px, #F87171 8px 16px); border-radius: 0 6px 6px 0; }
+.tbar .limit { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); }
+.confetti { position: absolute; inset: 0; pointer-events: none; }
+.confetti i { position: absolute; top: -12px; width: 8px; height: 13px; border-radius: 2px; opacity: 0; animation-name: confettiFall; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+@keyframes confettiFall { 0% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 0 340px; rotate: 540deg; } }
+@keyframes rhPop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes rhBlink { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .confetti { display: none; } .rh-icon, .stars span.on { animation: none !important; } }
 .persona { padding: 1.1rem 1.3rem; border-left: 5px solid var(--gold); }
 .persona q { font-family: var(--serif); font-size: 1.05rem; }
 .tests li.bad { color: var(--danger); }
@@ -4486,10 +4522,25 @@ function finishGame() {
 
 function outcomeGrade() {
   const pts = S.deterMax || 0;
-  if (S.codeBlue) return { label: '코드 블루 발생 → 중환자실 전동', cls: 'red' };
-  if (pts >= 4) return { label: '패혈성 쇼크 의심 → 중환자실 전동', cls: 'red' };
-  if (pts >= 2.5) return { label: '조기 대응 성공 → 병동 집중 관찰', cls: 'gold' };
-  return { label: '조기 대응 성공 → 병동에서 안정화', cls: '' };
+  const bad = { tier: 'bad', icon: '🚨', title: 'EMR은 복구했지만, 환자는 악화되었습니다', cls: 'red',
+    lead: '대응이 늦어지는 동안 환자 상태가 나빠졌습니다. 아래 기록에서 어느 구간에서 지연·오답이 쌓였는지 되짚어 보세요.' };
+  if (S.codeBlue) return Object.assign({ label: '코드 블루 발생 → 중환자실 전동' }, bad);
+  if (pts >= 4) return Object.assign({ label: '패혈성 쇼크 의심 → 중환자실 전동' }, bad);
+  if (pts >= 2.5) return { tier: 'warn', icon: '⚠️', title: '아슬아슬한 대응', cls: 'gold', label: '조기 대응 성공 → 병동 집중 관찰',
+    lead: 'EMR을 복구하고 SBAR 보고를 마쳤지만, 환자는 집중 관찰이 필요한 상태까지 악화되었습니다.' };
+  return { tier: 'good', icon: '🏆', title: '환자를 지켜냈습니다!', cls: '', label: '조기 대응 성공 → 병동에서 안정화',
+    lead: 'EMR을 복구하고 SBAR 보고로 조기 대응에 성공해, 환자가 병동에서 안정을 되찾았습니다.' };
+}
+/* 별점: 기준 3개 × 1점. 정답률 기준 70%는 장별 「복습 필요」 판정과 같은 값 */
+function overallAccuracy(sections) {
+  const a = sections.reduce((t, x) => t + x.attempts, 0), sv = sections.reduce((t, x) => t + x.solved, 0);
+  return a ? Math.round((sv / a) * 100) : null;
+}
+function starCriteria(r) {
+  return [
+    { ok: r.outcome.tier !== 'bad', label: '환자 중환자실 전동 없음' },
+    { ok: r.used <= budgetSec(), label: '제한 시간 ' + fmtTime(budgetSec()) + ' 안에 완료' },
+    { ok: r.accuracy !== null && r.accuracy >= 70, label: '전체 정답률 70% 이상 (' + (r.accuracy === null ? '—' : r.accuracy + '%') + ')' }];
 }
 function personaInfo() {
   const v = getP('final.B').values;
@@ -4500,9 +4551,28 @@ function personaInfo() {
 function resultSummary() {
   const sections = S.plan.map((id) => Object.assign({ id, name: ROOM_BY_ID[id].name }, sectionStats(id)));
   const used = usedSec();
-  return { sections, chapters: chapterStats(), used, hints: totalHints(), outcome: outcomeGrade(), persona: personaInfo() };
+  const r = { sections, chapters: chapterStats(), used, hints: totalHints(), outcome: outcomeGrade(), persona: personaInfo(), accuracy: overallAccuracy(sections) };
+  r.criteria = starCriteria(r);
+  r.stars = r.criteria.filter((c) => c.ok).length;
+  return r;
 }
 
+function timeBar(used, budget) {
+  const span = Math.max(used, budget) || 1;
+  const inPct = (Math.min(used, budget) / span) * 100, overPct = (Math.max(0, used - budget) / span) * 100;
+  const over = used > budget;
+  return h('div', { class: 'tbar-wrap' },
+    h('div', { class: 'tbar-label' }, h('span', {}, '사용 시간 ', h('b', {}, fmtTime(used)), ' / 제한 ' + fmtTime(budget)),
+      h('span', { class: over ? 'over' : 'in' }, over ? '⏱ ' + fmtTime(used - budget) + ' 초과' : '⏱ ' + fmtTime(budget - used) + ' 여유')),
+    h('div', { class: 'tbar', role: 'img', 'aria-label': over ? '제한 시간 초과' : '제한 시간 안에 완료' },
+      h('i', { class: 'in', style: 'width:' + inPct + '%' }), h('i', { class: 'over', style: 'width:' + overPct + '%' }),
+      over ? h('span', { class: 'limit', style: 'left:' + (budget / span) * 100 + '%' }) : null));
+}
+function confetti() {
+  const colors = ['#C8A96A', '#6E2233', '#2F855A', '#E8B4BE', '#F59E0B'];
+  return h('div', { class: 'confetti', 'aria-hidden': 'true' }, ...Array.from({ length: 36 }, (_, i) =>
+    h('i', { style: `left:${(i * 37) % 100}%;background:${colors[i % 5]};animation-delay:${(i % 9) * 0.12}s;animation-duration:${2.2 + (i % 5) * 0.35}s;transform:rotate(${i * 23}deg)` })));
+}
 function renderResult() {
   const r = resultSummary();
   const kpi = (k, v) => h('div', { class: 'kpi glass' }, h('div', { class: 'k' }, k), h('div', { class: 'v' }, v));
@@ -4521,12 +4591,21 @@ function renderResult() {
       h('td', {}, h('div', { class: 'bar' }, h('i', { class: c.weak ? 'weak' : '', style: 'width:' + (c.accuracy || 0) + '%' }))),
       h('td', {}, c.accuracy === null ? '미응시' : c.weak ? h('span', { class: 'badge red' }, '⚠ 복습 필요') : h('span', { class: 'badge' }, '양호'))))));
   $('#main').replaceChildren(
-    h('section', { class: 'hero glass' },
-      h('div', { style: 'font-size:2.6rem;line-height:1', 'aria-hidden': 'true' }, '🚪'),
-      h('h2', {}, '탈출 성공!'),
-      h('p', { class: 'lead' }, S.team + ' 대응팀이 7병동 EMR을 복구하고 담당의에게 SBAR 보고를 마쳤습니다.'),
+    h('section', { class: 'hero glass result-hero tier-' + r.outcome.tier },
+      r.outcome.tier === 'good' ? confetti() : null,
+      h('div', { class: 'rh-top' },
+        h('div', { class: 'rh-icon', 'aria-hidden': 'true' }, r.outcome.icon),
+        h('div', { class: 'rh-head' },
+          h('div', { class: 'rh-eyebrow' }, '🚪 탈출 완료 · 근무 종료'),
+          h('h2', {}, r.outcome.title),
+          h('div', { class: 'rh-outcome' }, '환자 결과 ', h('b', {}, r.outcome.label)))),
+      h('p', { class: 'lead' }, S.team + ' 대응팀 — ' + r.outcome.lead),
       rosterLines(S).length ? h('p', { class: 'roster-line' }, h('b', {}, (S.cls || '') + ' 참여자 '), rosterLines(S).join(' · ')) : null,
-      h('p', {}, '환자 결과: ', h('span', { class: 'badge ' + r.outcome.cls }, r.outcome.label))),
+      h('div', { class: 'rh-score' },
+        h('div', { class: 'stars', role: 'img', 'aria-label': '별점 3점 만점에 ' + r.stars + '점' },
+          ...[0, 1, 2].map((i) => h('span', { class: i < r.stars ? 'on' : '', style: '--d:' + (i * 0.25) + 's' }, '★'))),
+        h('ul', { class: 'criteria' }, ...r.criteria.map((c) => h('li', { class: c.ok ? 'ok' : 'no' }, (c.ok ? '✓ ' : '✗ ') + c.label)))),
+      timeBar(r.used, budgetSec())),
     h('div', { class: 'res-grid' },
       kpi('총 소요 시간(페널티 포함)', fmtTime(r.used)),
       kpi('제한 시간', fmtTime(budgetSec())),
@@ -4555,7 +4634,7 @@ function savePng() {
     const peopleRows = [];
     for (let i = 0; i < people.length; i += 3) peopleRows.push(people.slice(i, i + 3).join('   '));
     const shift = peopleRows.length * 30;
-    const H = 520 + shift + r.sections.length * rowH + Math.ceil(r.chapters.length / 2) * rowH;
+    const H = 540 + shift + r.sections.length * rowH + Math.ceil(r.chapters.length / 2) * rowH;
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const c = cv.getContext('2d');
@@ -4565,14 +4644,23 @@ function savePng() {
     c.strokeStyle = '#C8A96A'; c.lineWidth = 4; c.strokeRect(20, 20, W - 40, H - 40);
     const txt = (s, x, y, font, color) => { c.font = font; c.fillStyle = color; c.fillText(s, x, y); };
     const serif = "'Noto Serif KR', serif", sans = "'Noto Sans KR', sans-serif", mono = "'JetBrains Mono', monospace";
-    txt(DATA.meta.title + ' — 탈출 성공', 60, 90, '900 44px ' + serif, '#6E2233');
+    const tierColor = { good: '#276749', warn: '#B45309', bad: '#C4320A' }[r.outcome.tier];
+    const head = DATA.meta.title + ' — ' + r.outcome.title;
+    let fs = 44; c.font = '900 ' + fs + 'px ' + serif;
+    while (fs > 22 && c.measureText(head).width > W - 120) { fs -= 2; c.font = '900 ' + fs + 'px ' + serif; } // 제목이 길면 폭에 맞춰 축소
+    txt(head, 60, 90, '900 ' + fs + 'px ' + serif, tierColor);
     txt(S.team + ' · ' + (S.mode === 'full' ? '전체 모드' : '수업 모드') + ' · ' + (S.diff === 'adv' ? '심화' : '기본') + ' · ' + new Date().toLocaleString('ko-KR'), 60, 130, '500 20px ' + sans, '#5F636B');
     peopleRows.forEach((line, i) => txt((i === 0 ? (S.cls || '') + ' 참여자  ' : '') + line, i === 0 ? 60 : 60 + 120, 165 + i * 30, '600 20px ' + sans, '#2A2D33'));
     c.translate(0, shift); // 명단 줄 수만큼 아래 내용을 내린다
     const kp = [['총 시간', fmtTime(r.used)], ['힌트', r.hints + '회'], ['페널티', fmtTime(S.penaltySec)], ['오답', S.wrongTotal + '회']];
     kp.forEach(([k, v], i) => { txt(k, 60 + i * 270, 185, '500 18px ' + sans, '#5F636B'); txt(v, 60 + i * 270, 225, '700 34px ' + mono, '#6E2233'); });
-    txt('환자 결과: ' + r.outcome.label, 60, 275, '700 22px ' + sans, r.outcome.cls === 'red' ? '#C4320A' : '#8C3A4C');
-    let y = 330;
+    txt('환자 결과: ' + r.outcome.label, 60, 275, '700 22px ' + sans, tierColor);
+    c.font = '700 22px ' + sans;
+    const sx = 60 + c.measureText('환자 결과: ' + r.outcome.label).width + 40;
+    txt('★★★'.slice(0, r.stars), sx, 277, '700 30px ' + sans, '#E0A82E');
+    txt('☆☆☆'.slice(0, 3 - r.stars), sx + r.stars * 30, 277, '700 30px ' + sans, '#C9C1B5');
+    txt(r.criteria.map((x) => (x.ok ? '✓ ' : '✗ ') + x.label).join('    '), 60, 305, '500 16px ' + sans, '#5F636B');
+    let y = 350;
     txt('구간별 기록', 60, y, '700 24px ' + serif, '#2A2D33'); y += 36;
     r.sections.forEach((s) => {
       txt(s.name, 70, y, '500 19px ' + sans, '#2A2D33');
