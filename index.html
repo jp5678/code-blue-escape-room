@@ -473,6 +473,26 @@ table.res th { color: var(--primary); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+
+/* ----- 카드 구분: 모든 카드에 테두리 + 왼쪽 세로 강조선(카드 종류별 색) ----- */
+.glass { --card-accent: var(--primary); border: 1px solid var(--line-strong); border-left: 4px solid var(--card-accent); }
+.glass.c-form { --card-accent: #2563EB; }          /* 대응팀 등록: 파랑 */
+.glass.c-steps { --card-accent: #C8A96A; }         /* 퍼즐 탭: 금색 */
+.glass.c-puzzle { --card-accent: #0F766E; }        /* 퍼즐 카드: 청록 */
+.glass.c-clear { --card-accent: #2F855A; }         /* 구간 해제: 초록 */
+.glass.monitor-wrap { --card-accent: #475569; }    /* 중앙 모니터: 슬레이트 */
+.glass.minimap { --card-accent: #7C3AED; border-width: 1px 1px 1px 4px; }  /* 병동 현황판: 보라 */
+.glass.c-course { --card-accent: #2563EB; }        /* 환자 경과 그래프: 파랑 */
+.glass.c-sec { --card-accent: #7C3AED; }           /* 구간별 기록: 보라 */
+.glass.c-ch { --card-accent: #0F766E; }            /* 장별 취약 영역: 청록 */
+.glass.c-test { --card-accent: #475569; }
+.glass.persona { --card-accent: var(--gold); border-left-width: 4px; }
+.glass.result-hero.tier-good, .glass.kgroup.lv-ok { --card-accent: #2F855A; }
+.glass.result-hero.tier-warn, .glass.kgroup.lv-warn { --card-accent: #D97706; }
+.glass.result-hero.tier-bad, .glass.kgroup.lv-bad { --card-accent: var(--danger); }
+.glass.hero { border-top: 6px solid var(--card-accent); }
+.result-hero.tier-good { border-top-color: #2F855A; } .result-hero.tier-warn { border-top-color: #D97706; } .result-hero.tier-bad { border-top-color: var(--danger); }
+.glass.kgroup { border-top: 5px solid var(--card-accent); }
 </style>
 </head>
 <body class="emr-locked">
@@ -4363,7 +4383,7 @@ function renderSection() {
       (st.solved || st.skipped ? '✓ ' : '') + p.id + ' · ' + p.title);
   }));
   const body = S.pIdx >= room.puzzles.length ? renderSectionClear(room) : renderPuzzle(room, room.puzzles[S.pIdx]);
-  $('#main').replaceChildren(head, h('div', { class: 'glass', style: 'padding:.6rem .9rem' }, steps), body);
+  $('#main').replaceChildren(head, h('div', { class: 'glass c-steps', style: 'padding:.6rem .9rem' }, steps), body);
   renderMinimap();
   if (S.pIdx < room.puzzles.length) refreshView(room, room.puzzles[S.pIdx], pkey(room.id, room.puzzles[S.pIdx].id));
 }
@@ -4390,7 +4410,7 @@ function renderPuzzle(room, puz) {
     typeof teacherPuzzleTools === 'function' ? teacherPuzzleTools(room, puz) : null);
   const hints = h('div', { class: 'hints', id: 'hintList' }, ...(puz.hintsX || []).slice(0, st.hints).map((x, i) =>
     h('div', { class: 'hint' }, h('b', {}, ['① 넛지', '② 부분 공개', '③ 거의 정답'][i] + ' '), decryptHint(x))));
-  return h('section', { class: 'puzzle glass', id: 'puzzleCard' },
+  return h('section', { class: 'puzzle glass c-puzzle', id: 'puzzleCard' },
     h('h3', {}, '퍼즐 ' + puz.id + ' · ' + puz.title, h('span', { class: 'badge' }, puz.kind),
       h('span', { class: 'badge gold' }, puz.chapter === '부록1' ? '부록 1' : 'Chapter ' + puz.chapter.replace('Ch', ''))),
     h('div', { class: 'prompt', html: puz.prompt }),
@@ -4568,7 +4588,7 @@ function renderSectionClear(room) {
   const nextId = S.plan[S.idx + 1];
   const spent = (S.sectionSec[room.id] || 0) + (elapsedMs() - S.secStartMs) / 1000;
   const st = sectionStats(room.id);
-  return h('section', { class: 'puzzle glass' },
+  return h('section', { class: 'puzzle glass c-clear' },
     h('h3', {}, '🔓 ' + room.name + ' 해제!'),
     h('p', {}, '구간 소요 시간 ', h('b', {}, fmtTime(spent)), ' · 정답률 ', h('b', {}, st.accuracy === null ? '—' : st.accuracy + '%'), ' · 힌트 ', h('b', {}, String(st.hints)), '회'),
     room.clue ? h('div', { class: 'clue-card' }, h('div', { class: 't' }, '🃏 단서 카드 획득 · ' + room.clue.label), h('div', {}, room.clue.text), h('div', { class: 'small' }, '최종 관문에서 SBAR 보고에 사용합니다. 보고에 넣으면 안 되는 카드일 수도 있습니다.')) : null,
@@ -4660,7 +4680,7 @@ function kpiGroups(r) {
 /* C. 환자 경과 그래프: 기록된 악화 점수를 NEWS2로 환산해 구간별로 표시 */
 function courseChart() {
   const pts = S.course || [];
-  const wrap = (...kids) => h('section', { class: 'puzzle glass course' }, h('h3', {}, '📈 환자 경과 (NEWS2)'), ...kids);
+  const wrap = (...kids) => h('section', { class: 'puzzle glass course c-course' }, h('h3', {}, '📈 환자 경과 (NEWS2)'), ...kids);
   if (pts.length < 2) return wrap(h('p', { class: 'small' }, '이 게임에는 경과 기록이 없습니다. (경과 기록 기능이 추가되기 전에 시작한 게임)'));
   const NS = 'http://www.w3.org/2000/svg';
   const sv = (tag, attrs, ...kids) => {
@@ -4818,8 +4838,8 @@ function renderResult() {
     courseChart(),
     h('section', { class: 'persona glass' }, h('div', { class: 'small' }, 'AI 공존 시대에 우리가 될 간호사'),
       h('h3', { style: 'margin:.3rem 0' }, r.persona.title), r.persona.line ? h('q', {}, r.persona.line) : null),
-    h('section', { class: 'puzzle glass' }, h('h3', {}, '구간별 기록'), secTable),
-    h('section', { class: 'puzzle glass' }, h('h3', {}, '장별 취약 영역'), h('p', { class: 'small' }, '정답률 70% 미만이거나 힌트를 2회 이상 쓴 장을 「복습 필요」로 표시합니다.'), chTable),
+    h('section', { class: 'puzzle glass c-sec' }, h('h3', {}, '구간별 기록'), secTable),
+    h('section', { class: 'puzzle glass c-ch' }, h('h3', {}, '장별 취약 영역'), h('p', { class: 'small' }, '정답률 70% 미만이거나 힌트를 2회 이상 쓴 장을 「복습 필요」로 표시합니다.'), chTable),
     h('div', { class: 'actions' },
       h('button', { class: 'btn gold', type: 'button', onclick: savePng }, '🖼 결과 PNG로 저장'),
       h('span', { class: 'small' }, '새 게임은 PNG를 저장한 뒤 헤더의 「🔄 초기화」로 시작하세요.')));
@@ -5230,7 +5250,7 @@ function renderStart() {
       h('li', {}, '퍼즐을 풀면 디브리핑 카드와 단서 카드를 얻습니다. 진행 상황은 이 기기에 자동 저장됩니다.'),
       h('li', {}, '키보드: Tab 이동 · Enter 제출 · H 힌트 · M 음소거')));
   const roster = buildRosterForm(() => start());
-  const form = h('section', { class: 'puzzle glass' },
+  const form = h('section', { class: 'puzzle glass c-form' },
     h('h3', {}, '대응팀 등록'),
     roster.el,
     h('div', { class: 'form-grid' },
@@ -5300,7 +5320,7 @@ function tick() {
 
 function renderTests() {
   const res = runSelfTests(CORE, TL);
-  $('#main').replaceChildren(h('section', { class: 'puzzle glass' },
+  $('#main').replaceChildren(h('section', { class: 'puzzle glass c-test' },
     h('h3', {}, '🧪 자동 테스트 (NEWS2·qSOFA·SHA-256)'),
     h('p', {}, h('b', { style: 'color:' + (res.fail ? 'var(--danger)' : 'var(--primary-2)') }, res.pass + '개 통과 · ' + res.fail + '개 실패')),
     h('ul', { class: 'tests small' }, ...res.results.map((r) => h('li', { class: r.ok ? '' : 'bad' }, (r.ok ? '✔ ' : '✖ ') + r.name + (r.ok ? '' : ' — 기대 ' + JSON.stringify(r.expected) + ', 실제 ' + JSON.stringify(r.actual))))),
