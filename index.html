@@ -132,17 +132,27 @@ body.emr-locked .emr-bar {
 }
 @keyframes emrStripe { from { background-position: 0 0; } to { background-position: 28.28px 0; } }
 @keyframes emrPulse { 0%, 100% { box-shadow: 0 0 0 0 var(--ring); } 50% { box-shadow: 0 0 0 5px transparent; } }
-/* 고장 배지 3개(EMR·NEWS2·ESM)를 한 묶음으로 줄무늬 트랙 위에서 좌→우로 깜빡이며 이동(반복). 모두 가동이면 왼쪽에 정지 */
+/* 고장 배지 3개(EMR·NEWS2·ESM)가 각각 따로 줄무늬 트랙 위를 좌→우로 이동(3초 간격으로 엇갈림)하며 하나씩 번갈아 깜빡임. 모두 가동이면 왼쪽에 나란히 정지 */
 .emr-lane { position: relative; flex: 1 1 auto; min-width: 0; min-height: 28px; display: flex; align-items: center; }
 .emr-lane .emr-bar { position: absolute; left: 0; right: 0; top: 50%; margin-top: -4px; }
-.emr-run { position: relative; left: 0; display: inline-flex; align-items: center; gap: .6rem; flex-wrap: nowrap; }
-body.emr-locked .emr-run, .emr-strip:has(.emr-sys.bad) .emr-run { animation: emrRun 7s linear infinite, emrBlink 1s ease-in-out infinite; }
-@keyframes emrRun { from { left: 0; transform: translateX(0); } to { left: 100%; transform: translateX(-100%); } }
+.emr-run { position: relative; display: inline-flex; align-items: center; gap: .6rem; flex-wrap: nowrap; }
+body.emr-locked .emr-run, .emr-strip:has(.emr-sys.bad) .emr-run { position: absolute; inset: 0; }
+body.emr-locked .emr-run > *, .emr-strip:has(.emr-sys.bad) .emr-run > * {
+  position: absolute; top: 50%; left: 0; transform: translate(0, -50%);
+  animation: emrRun 9s linear infinite, emrBlink 1s ease-in-out infinite; }
+.emr-run > :nth-child(2) { animation-delay: -6s, -.33s !important; }
+.emr-run > :nth-child(3) { animation-delay: -3s, -.66s !important; }
+@keyframes emrRun { from { left: 0; transform: translate(0, -50%); } to { left: 100%; transform: translate(-100%, -50%); } }
 @keyframes emrBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 @media (max-width: 640px) {
-  .emr-run { flex-wrap: wrap; animation: none !important; }
+  .emr-run, body.emr-locked .emr-run { position: relative !important; inset: auto; flex-wrap: wrap; }
+  .emr-run > * { position: static !important; transform: none !important; animation: none !important; }
 }
-@media (prefers-reduced-motion: reduce) { body.emr-locked .emr-bar, body.emr-locked .emr-icon, .emr-sys.bad .emr-ic, .emr-run { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  body.emr-locked .emr-bar, body.emr-locked .emr-icon, .emr-sys.bad .emr-ic { animation: none !important; }
+  .emr-run, body.emr-locked .emr-run { position: relative !important; inset: auto; }
+  .emr-run > * { position: static !important; transform: none !important; animation: none !important; }
+}
 
 /* ----- 레이아웃: 업무 화면(좌) + 스테이션 장비(우) ----- */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 480px; gap: 1.25rem; padding: 1.25rem; max-width: 1880px; margin: 0 auto; }
