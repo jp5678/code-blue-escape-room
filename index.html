@@ -132,7 +132,17 @@ body.emr-locked .emr-bar {
 }
 @keyframes emrStripe { from { background-position: 0 0; } to { background-position: 28.28px 0; } }
 @keyframes emrPulse { 0%, 100% { box-shadow: 0 0 0 0 var(--ring); } 50% { box-shadow: 0 0 0 5px transparent; } }
-@media (prefers-reduced-motion: reduce) { body.emr-locked .emr-bar, body.emr-locked .emr-icon, .emr-sys.bad .emr-ic { animation: none; } }
+/* 고장 배지 3개(EMR·NEWS2·ESM)를 한 묶음으로 줄무늬 트랙 위에서 좌→우로 깜빡이며 이동(반복). 모두 가동이면 왼쪽에 정지 */
+.emr-lane { position: relative; flex: 1 1 auto; min-width: 0; min-height: 28px; display: flex; align-items: center; }
+.emr-lane .emr-bar { position: absolute; left: 0; right: 0; top: 50%; margin-top: -4px; }
+.emr-run { position: relative; left: 0; display: inline-flex; align-items: center; gap: .6rem; flex-wrap: nowrap; }
+body.emr-locked .emr-run, .emr-strip:has(.emr-sys.bad) .emr-run { animation: emrRun 7s linear infinite, emrBlink 1s ease-in-out infinite; }
+@keyframes emrRun { from { left: 0; transform: translateX(0); } to { left: 100%; transform: translateX(-100%); } }
+@keyframes emrBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@media (max-width: 640px) {
+  .emr-run { flex-wrap: wrap; animation: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { body.emr-locked .emr-bar, body.emr-locked .emr-icon, .emr-sys.bad .emr-ic, .emr-run { animation: none !important; } }
 
 /* ----- 레이아웃: 업무 화면(좌) + 스테이션 장비(우) ----- */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 480px; gap: 1.25rem; padding: 1.25rem; max-width: 1880px; margin: 0 auto; }
@@ -3272,10 +3282,14 @@ const ROOMS = {
 </header>
 <div class="emr-status" id="emrStatus" role="status" aria-live="polite">
   <div class="emr-strip">
-    <span class="emr-pill"><span class="emr-icon" id="emrIcon" aria-hidden="true">🔒</span><span id="emrText">EMR 잠김</span></span>
-    <span class="emr-sys bad" id="emrNews">NEWS2 <span class="emr-ic" aria-hidden="true">🔒</span> 잠김</span>
-    <span class="emr-sys bad" id="emrEsm">ESM <span class="emr-ic" aria-hidden="true">⚠</span> 입력 끊김</span>
-    <span class="emr-bar" aria-hidden="true"></span>
+    <div class="emr-lane">
+      <span class="emr-bar" aria-hidden="true"></span>
+      <div class="emr-run">
+        <span class="emr-pill"><span class="emr-icon" id="emrIcon" aria-hidden="true">🔒</span><span id="emrText">EMR 잠김</span></span>
+        <span class="emr-sys bad" id="emrNews">NEWS2 <span class="emr-ic" aria-hidden="true">🔒</span> 잠김</span>
+        <span class="emr-sys bad" id="emrEsm">ESM <span class="emr-ic" aria-hidden="true">⚠</span> 입력 끊김</span>
+      </div>
+    </div>
   </div>
 </div>
 
