@@ -3685,9 +3685,17 @@ const Sound = (() => {
     }
     return ctx;
   }
+  // 브라우저 자동재생 정책: 사용자 조작 전에 만든 AudioContext는 suspended 상태 → 조작 시 다시 켬
+  function wake() {
+    const c = ensure();
+    if (c && c.state === 'suspended') c.resume().catch(() => {});
+    return c;
+  }
+  ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => document.addEventListener(ev, wake, { capture: true, passive: true }));
+  let lockLast = -Infinity;
   function tone(freq, dur, type, vol, delay) {
     if (muted) return;
-    const c = ensure();
+    const c = wake();
     if (!c) return;
     const t0 = c.currentTime + (delay || 0);
     const osc = c.createOscillator();
@@ -3711,6 +3719,14 @@ const Sound = (() => {
     wrong() { tone(180, 0.3, 'square', 0.08); },
     alarm() { [0, 0.25, 0.5].forEach((d) => tone(960, 0.18, 'square', 0.07, d)); },
     click() { tone(520, 0.05, 'triangle', 0.05); },
+    // 잠김 상태 위급 배경음: 시스템이 하나라도 잠겨 있는 동안 4초 간격으로 2음 경보(낮은 음량) 반복. 호출 횟수와 무관하게 경과 시간 기준
+    lockedTick(on) {
+      if (!on) { lockLast = -Infinity; return; }
+      const now = performance.now();
+      if (now - lockLast < 3900) return; // 1초 타이머 지연으로 5초로 밀리지 않게 여유
+      lockLast = now;
+      [0, 0.32].forEach((d, i) => tone(i ? 587 : 784, 0.26, 'sawtooth', 0.035, d));
+    },
     unlock() { tone(392, 0.15, 'sine', 0.12); tone(523, 0.15, 'sine', 0.12, 0.15); tone(784, 0.4, 'sine', 0.12, 0.3); }
   };
 })();
@@ -3987,6 +4003,7 @@ function updateMonitor() {
   const esmOk = !idle && (S.finished || esmFixed());
   const emrLocked = !newsOk || !esmOk;
   document.body.classList.toggle('emr-locked', emrLocked);
+  Sound.lockedTick(emrLocked && !idle && !S.finished);
   const icon = emrLocked ? '🔒' : '✓';
   if ($('#emrIcon').textContent !== icon) $('#emrIcon').textContent = icon;
   $('#emrText').textContent = emrLocked ? 'EMR 잠김' : 'EMR 가동'; // '정상'은 환자 상태로 오해될 수 있어 시스템 상태는 '가동'으로 표기
