@@ -172,7 +172,7 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .minimap svg { width: 100%; height: auto; display: block; }
 /* 7병동 현황판: 병원 분위기의 절제된 무채색. 모든 방은 같은 회백색, 현재 방만 버건디(테마색) 포인트, 해제는 옅은 세이지 ✓ */
 .mm-room rect { fill: #12377A; stroke: #2A56A8; stroke-width: 1.2; transition: all .4s; }
-.mm-room text { fill: #DCE6F7; font-size: 11.5px; font-weight: 600; font-family: var(--sans); text-anchor: middle; }
+.mm-room text { fill: #DCE6F7; font-size: var(--mm-fs, 11.5px); font-weight: 600; font-family: var(--sans); text-anchor: middle; }
 .mm-room.cleared rect { fill: #134A4A; stroke: #5EC2A0; }
 .mm-room.cleared text { fill: #C9F2E3; }
 .mm-room.current rect { fill: #4A1A2E; stroke: #F0849B; stroke-width: 2.4; animation: pulse 1.6s ease-in-out infinite; } /* 현재: 짙은 버건디 바탕 + 장밋빛 테두리 */
@@ -181,6 +181,7 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .mm-room.off text { opacity: .45; }
 @keyframes pulse { 50% { stroke-opacity: .35; } }
 .mm-corr { fill: #0F3070; stroke: #1F4590; }
+.mm-corr-t { font-size: var(--mm-fs, 10px); font-family: var(--sans); }
 .minimap .panel-title { flex-wrap: wrap; gap: .15rem .6rem; } .minimap .panel-title > :first-child { white-space: nowrap; } .minimap .panel-title .small { word-break: keep-all; } /* 좁은 화면: 제목은 한 줄, 범례는 단어 단위 줄바꿈 */
 
 /* ----- 업무 화면: 구역 머리(차트 헤더) ----- */
@@ -4060,7 +4061,7 @@ function renderMinimap() {
   const label = S ? S.plan.map((id, i) => ROOM_BY_ID[id].short + (i < S.idx || S.finished ? '(해제)' : i === S.idx ? '(현재)' : '')).join(', ') : '게임 시작 전';
   svg.setAttribute('aria-label', '병동 평면도: ' + label);
   svg.innerHTML = '<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="rgba(168,191,230,.22)" stroke-width="2"/></pattern></defs>' +
-    '<rect class="mm-corr" x="10" y="92" width="322" height="26" rx="6"/><text x="171" y="109" fill="#A8BFE6" font-size="10" font-weight="500" text-anchor="middle">복 도 · 712호 김○○ ▸</text>';
+    '<rect class="mm-corr" x="10" y="92" width="322" height="26" rx="6"/><text class="mm-corr-t" x="171" y="109" fill="#A8BFE6" font-weight="500" text-anchor="middle">복 도 · 712호 김○○ ▸</text>';
   Object.entries(MM_LAYOUT).forEach(([id, [x, y, w, hgt]]) => {
     const g = document.createElementNS(NS, 'g');
     const inPlan = !S || S.plan.includes(id);
@@ -4073,7 +4074,19 @@ function renderMinimap() {
     svg.appendChild(g);
   });
   $('#minimap').replaceChildren(svg);
+  fitMinimapText();
 }
+/* 현황판 글자 크기: 평면도(SVG)는 화면 폭에 따라 늘어나므로, 보이는 크기가 중앙 모니터 글씨(.mon-head)와 같도록 SVG 단위로 환산 */
+function fitMinimapText() {
+  const svg = $('#minimap svg');
+  if (!svg) return;
+  const w = svg.getBoundingClientRect().width;
+  if (!w) return;
+  const target = parseFloat(getComputedStyle($('.mon-head')).fontSize) || 10.92;
+  svg.style.setProperty('--mm-fs', (target * 342 / w).toFixed(2) + 'px');
+}
+if (window.ResizeObserver) new ResizeObserver(() => fitMinimapText()).observe(document.getElementById('minimap'));
+else window.addEventListener('resize', fitMinimapText);
 
 /* ===== 04-views.js — 퍼즐 자료 화면(흐름도·활력징후표·코드·인력배치) ===== */
 
