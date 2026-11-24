@@ -3297,8 +3297,8 @@ const ROOMS = {
       <span class="emr-bar" aria-hidden="true"></span>
       <div class="emr-run">
         <span class="emr-pill"><span class="emr-icon" id="emrIcon" aria-hidden="true">🔒</span><span id="emrText">EMR 잠김</span></span>
-        <span class="emr-sys bad" id="emrNews">NEWS2 <span class="emr-ic" aria-hidden="true">🔒</span> 잠김</span>
-        <span class="emr-sys bad" id="emrEsm">ESM <span class="emr-ic" aria-hidden="true">⚠</span> 입력 끊김</span>
+        <span class="emr-sys bad" id="emrNews"><span class="emr-ic" aria-hidden="true">🔒</span> NEWS2 잠김</span>
+        <span class="emr-sys bad" id="emrEsm"><span class="emr-ic" aria-hidden="true">⚠</span> ESM 입력 끊김</span>
       </div>
     </div>
   </div>
@@ -4017,8 +4017,16 @@ function updateMonitor() {
   }
   const esm = $('#esmChip');
   if (esmFixed()) {
-    esm.className = 'mon-chip lv-medium';
-    esm.replaceChildren('ESM(패혈증 예측 AI) 경보 ', h('b', {}, '●'), h('br'), h('span', { class: 'small' }, '입력 복구 · 보조 정보'));
+    // 근무 종료 후 환자가 안정(NEWS2 0~4, 단일 3점 없음)이면 경보 해제. 진행 중이거나 악화 상태면 경보 유지(색은 NEWS2 위험도와 맞춤)
+    const r = CORE.news2Response(v);
+    const cleared = S.finished && (r.level === 'none' || r.level === 'low');
+    if (cleared) {
+      esm.className = 'mon-chip lv-none';
+      esm.replaceChildren('ESM(패혈증 예측 AI) 경보 ', h('b', {}, '해제'), h('br'), h('span', { class: 'small' }, '환자 안정 · 보조 정보'));
+    } else {
+      esm.className = 'mon-chip ' + (S.finished && r.level === 'high' ? 'lv-high' : 'lv-medium');
+      esm.replaceChildren('ESM(패혈증 예측 AI) 경보 ', h('b', {}, '●'), h('br'), h('span', { class: 'small' }, '입력 복구 · 보조 정보'));
+    }
   }
   $('#monitor').classList.toggle('alarm', points >= 4);
   // 상단 바 아래 EMR 상태 스트립: 잠김(빨강·🔒·줄무늬) / 가동(초록·✓), 하위 시스템별 복구 현황
@@ -4036,7 +4044,7 @@ function updateMonitor() {
     if (el.dataset.state === state) return;
     el.dataset.state = state;
     el.classList.toggle('bad', !ok);
-    el.replaceChildren(name + ' ', h('span', { class: 'emr-ic', 'aria-hidden': 'true' }, ok ? '✓' : icon), ' ' + (ok ? '가동' : word));
+    el.replaceChildren(h('span', { class: 'emr-ic', 'aria-hidden': 'true' }, ok ? '✓' : icon), ' ' + name + ' ' + (ok ? '가동' : word)); // 아이콘을 맨 앞에 두어 「✓ EMR 가동」 배지와 형식 통일
   };
   sys($('#emrNews'), newsOk, 'NEWS2', '🔒', '잠김');
   sys($('#emrEsm'), esmOk, 'ESM', '⚠', '입력 끊김');
