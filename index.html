@@ -194,6 +194,9 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .mon-chip.lv-high { border-color: #EF4444; color: #FCA5A5; }
 .mon-chip.lv-medium { border-color: #F59E0B; color: #FCD34D; }
 .mon-chip.lv-low-medium, .mon-chip.lv-low { border-color: var(--gold); color: var(--gold); }
+.esm-note h3 { margin: 0 0 .35rem; font-size: 1rem; }
+.esm-note p { margin: .2rem 0; }
+.esm-note.ok h3 { color: #276749; } .esm-note.warn h3 { color: #B45309; } .esm-note.bad h3 { color: var(--danger); }
 .deter { height: 6px; border-radius: 3px; background: #2C2F36; margin-top: .5rem; overflow: hidden; }
 .deter > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold), var(--danger)); transition: width .8s; }
 
@@ -3314,8 +3317,8 @@ const ROOMS = {
         <canvas class="ecg" id="ecg" width="600" height="110" aria-hidden="true"></canvas>
         <div class="vitals" id="vitals"></div>
         <div class="mon-foot">
-          <div class="mon-chip locked" id="newsChip" aria-label="NEWS2 계산 모듈 잠김, 점수 산출 불가">NEWS2(조기경보점수) <b class="nv">--</b> <span class="lk mon-ic" aria-hidden="true">🔒</span><br><span class="small">계산 모듈 잠김 · 산출 불가</span></div>
-          <div class="mon-chip flicker" id="esmChip">ESM(패혈증 예측 AI) 경보 <span class="mon-ic" aria-hidden="true">⚠</span><br><span class="small">입력 끊김 · 경보 울렸다 꺼짐</span></div>
+          <div class="mon-chip locked" id="newsChip" aria-label="NEWS2 계산 모듈 잠김, 점수 산출 불가"><span class="lk mon-ic" aria-hidden="true">🔒</span> NEWS2(조기경보점수) <b class="nv">--</b><br><span class="small">계산 모듈 잠김 · 산출 불가</span></div>
+          <div class="mon-chip flicker" id="esmChip"><span class="mon-ic" aria-hidden="true">⚠</span> ESM(패혈증 예측 AI) 경보<br><span class="small">입력 끊김 · 경보 울렸다 꺼짐</span></div>
         </div>
         <div class="deter" title="환자 악화 진행도"><i id="deterBar" style="width:0%"></i></div>
       </div>
@@ -3973,6 +3976,16 @@ function simClock(points) {
   const mins = 22 * 60 + Math.round(points * 60);
   return String(Math.floor(mins / 60) % 24).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
 }
+/**
+ * 복구된 ESM 경보 칩의 표시 상태. 색은 NEWS2 위험도에 맞춘다(교육용 단순화: 실제 ESM은 NEWS2와 별개 모델).
+ * - 진행 중: 경보 유지(줄거리상 경보가 다시 울림). NEWS2 7점 이상이면 빨강, 그 외 노랑
+ * - 종료 후: NEWS2 0점일 때만 경보 해제, 그 외에는 위험도에 맞춘 경보 유지
+ */
+function esmState(v, finished) {
+  const r = CORE.news2Response(v);
+  if (finished && r.level === 'none') return { cls: 'lv-none', icon: '○', word: '해제', sub: '환자 안정 · 보조 정보', cleared: true, news2: r };
+  return { cls: r.level === 'high' ? 'lv-high' : 'lv-medium', icon: '●', word: '울림', sub: '입력 복구 · 보조 정보', cleared: false, news2: r };
+}
 function news2Unlocked() { return !!S && (!S.plan.includes('r3') || getP('r3.A').solved || getP('r3.A').skipped); }
 function esmFixed() { return !!S && (!S.plan.includes('r1') || getP('r1.A').solved || getP('r1.A').skipped); }
 
@@ -4013,20 +4026,13 @@ function updateMonitor() {
     const r = CORE.news2Response(v);
     chip.className = 'mon-chip lv-' + r.level;
     chip.removeAttribute('aria-label');
-    chip.replaceChildren('NEWS2(조기경보점수) ', h('b', {}, String(r.total)), h('br'), h('span', { class: 'small' }, r.label));
+    chip.replaceChildren(h('span', { class: 'mon-ic', 'aria-hidden': 'true' }, r.level === 'none' ? '○' : '●'), ' NEWS2(조기경보점수) ', h('b', {}, String(r.total)), h('br'), h('span', { class: 'small' }, r.label));
   }
   const esm = $('#esmChip');
   if (esmFixed()) {
-    // 근무 종료 후 환자가 안정(NEWS2 0~4, 단일 3점 없음)이면 경보 해제. 진행 중이거나 악화 상태면 경보 유지(색은 NEWS2 위험도와 맞춤)
-    const r = CORE.news2Response(v);
-    const cleared = S.finished && (r.level === 'none' || r.level === 'low');
-    if (cleared) {
-      esm.className = 'mon-chip lv-none';
-      esm.replaceChildren('ESM(패혈증 예측 AI) 경보 ', h('b', {}, '해제'), h('br'), h('span', { class: 'small' }, '환자 안정 · 보조 정보'));
-    } else {
-      esm.className = 'mon-chip ' + (S.finished && r.level === 'high' ? 'lv-high' : 'lv-medium');
-      esm.replaceChildren('ESM(패혈증 예측 AI) 경보 ', h('b', {}, '●'), h('br'), h('span', { class: 'small' }, '입력 복구 · 보조 정보'));
-    }
+    const st = esmState(v, S.finished);
+    esm.className = 'mon-chip ' + st.cls;
+    esm.replaceChildren(h('span', { class: 'mon-ic', 'aria-hidden': 'true' }, st.icon), ' ESM(패혈증 예측 AI) 경보 ', h('b', {}, st.word), h('br'), h('span', { class: 'small' }, st.sub));
   }
   $('#monitor').classList.toggle('alarm', points >= 4);
   // 상단 바 아래 EMR 상태 스트립: 잠김(빨강·🔒·줄무늬) / 가동(초록·✓), 하위 시스템별 복구 현황
@@ -4691,6 +4697,20 @@ function outcomeGrade() {
   return { tier: 'good', icon: '🏆', title: '환자를 지켜냈습니다!', cls: '', label: '조기 대응 성공 → 병동에서 안정화',
     lead: 'EMR을 복구하고 SBAR 보고로 조기 대응에 성공해, 환자가 병동에서 안정을 되찾았습니다.' };
 }
+/* 결과 화면: 「시스템 가동」과 「경보 상태」의 차이, AI 경보는 보조 정보임을 되짚는 성찰 카드 */
+function esmReflection(r) {
+  const st = esmState(vitalsAt(S.deterMax || 0), true);
+  const bad = r.outcome.tier === 'bad';
+  const title = st.cleared ? '✓ ESM 경보 해제 — 시스템 「가동」과 「경보」는 다릅니다'
+    : bad ? '⚠ ESM 경보 울림 — AI 경보는 보조 정보입니다' : '● ESM 경보 유지 — 계속 관찰이 필요합니다';
+  const lines = st.cleared
+    ? ['「✓ ESM 가동」은 AI 시스템이 작동한다는 뜻이고, 「경보 해제」는 AI가 더 이상 위험 신호를 내지 않는다는 뜻입니다.',
+       '환자가 안정되었다는 판단은 AI가 아니라 활력징후와 NEWS2 ' + st.news2.total + '점(' + st.news2.label + ')으로 내렸습니다.']
+    : ['ESM 외부 검증에서 경보의 양성예측도(PPV)는 약 12%, AUROC는 0.63이었습니다(Wong 등, 2021). 경보가 울려도 패혈증이 아닐 수 있고, 울리지 않아도 놓칠 수 있습니다.',
+       (bad ? '환자가 악화된 지금은 ' : '지금은 ') + 'NEWS2 ' + st.news2.total + '점(' + st.news2.label + ')·qSOFA와 직접 사정으로 판단하고, AI 경보는 SBAR 보고의 근거 중 하나로만 쓰세요.'];
+  return h('section', { class: 'puzzle glass esm-note ' + (st.cleared ? 'ok' : bad ? 'bad' : 'warn') },
+    h('h3', {}, title), ...lines.map((t) => h('p', { class: 'small' }, t)));
+}
 /* 별점: 기준 3개 × 1점. 정답률 기준 70%는 장별 「복습 필요」 판정과 같은 값 */
 function overallAccuracy(sections) {
   const a = sections.reduce((t, x) => t + x.attempts, 0), sv = sections.reduce((t, x) => t + x.solved, 0);
@@ -4900,6 +4920,7 @@ function renderResult() {
           ...[0, 1, 2].map((i) => h('span', { class: i < r.stars ? 'on' : '', style: '--d:' + (i * 0.25) + 's' }, '★'))),
         h('ul', { class: 'criteria' }, ...r.criteria.map((c) => h('li', { class: c.ok ? 'ok' : 'no' }, (c.ok ? '✓ ' : '✗ ') + c.label)))),
       timeBar(r.used, budgetSec())),
+    esmReflection(r),
     kpiGroups(r),
     courseChart(),
     h('section', { class: 'persona glass' }, h('div', { class: 'small' }, 'AI 공존 시대에 우리가 될 간호사'),
