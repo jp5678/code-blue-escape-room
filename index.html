@@ -188,7 +188,9 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .mon-ic { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: .72rem; font-weight: 400; vertical-align: middle; }
 /* 잠김·끊김 아이콘: 상단 상태줄과 같은 고리 맥동(1.2초). 칩 전체는 깜빡이지 않음 */
 .mon-chip.locked .mon-ic, .mon-chip.flicker .mon-ic { --ring: rgba(239, 68, 68, .75); background: rgba(239, 68, 68, .18); animation: emrPulse 1.2s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .mon-chip.locked .mon-ic, .mon-chip.flicker .mon-ic { animation: none; } }
+/* 잠김 상태(복구 전)에는 두 칩 전체가 같은 박자로 깜빡임. 복구되면 클래스가 바뀌어 자동으로 멈춤 */
+.mon-chip.locked, .mon-chip.flicker { animation: blink .7s steps(2) infinite; }
+@media (prefers-reduced-motion: reduce) { .mon-chip.locked .mon-ic, .mon-chip.flicker .mon-ic, .mon-chip.locked, .mon-chip.flicker { animation: none; } }
 .mon-chip.locked .nv { font-family: var(--mono); letter-spacing: .08em; }
 .mon-chip.locked .small, .mon-chip.flicker .small { color: #FCA5A5; }
 .mon-chip.lv-high { border-color: #EF4444; color: #FCA5A5; }
@@ -3706,25 +3708,6 @@ const Sound = (() => {
   }
   // 모바일(iOS 등)은 손을 뗄 때(click·pointerup·touchend)만 허용하는 경우가 있어 모두 등록
   ['pointerdown', 'pointerup', 'click', 'keydown', 'touchstart', 'touchend'].forEach((ev) => document.addEventListener(ev, wake, { capture: true, passive: true }));
-  // 사이렌: 음높이가 오르내리는 소리(출동 버튼 경보)
-  function siren(lo, hi, dur, vol) {
-    if (muted) return;
-    const c = wake();
-    if (!c) return;
-    const t0 = c.currentTime;
-    const osc = c.createOscillator(), g = c.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(lo, t0);
-    osc.frequency.linearRampToValueAtTime(hi, t0 + dur / 2);
-    osc.frequency.linearRampToValueAtTime(lo, t0 + dur);
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.08);
-    g.gain.setValueAtTime(vol, t0 + dur - 0.15);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    osc.connect(g).connect(c.destination);
-    osc.start(t0);
-    osc.stop(t0 + dur + 0.02);
-  }
   function tone(freq, dur, type, vol, delay) {
     if (muted) return;
     const c = wake();
@@ -3752,8 +3735,14 @@ const Sound = (() => {
     wrong() { tone(180, 0.3, 'square', 0.08); },
     alarm() { [0, 0.25, 0.5].forEach((d) => tone(960, 0.18, 'square', 0.14, d)); },
     click() { tone(520, 0.05, 'triangle', 0.05); },
-    // 출동 경보: 출동 버튼을 누를 때만 사이렌 1회(반복 경보 없음)
-    dispatch() { siren(520, 880, 1.4, 0.09); },
+    // 출동음(1회): ① 원내 방송 차임 '딩-동' → ② 고우선순위 의료 경보 박자 '삐삐삐 – 삐삐'(IEC 60601-1-8의 3+2 펄스 패턴)
+    dispatch() {
+      tone(784, 0.55, 'sine', 0.16); tone(1568, 0.35, 'sine', 0.04);            // 딩 (G5 + 배음)
+      tone(523, 0.75, 'sine', 0.16, 0.3); tone(1046, 0.45, 'sine', 0.04, 0.3);  // 동 (C5 + 배음)
+      [0, 0.17, 0.34, 0.68, 0.85].forEach((d) => {                              // 삐삐삐 – 삐삐
+        tone(988, 0.13, 'square', 0.07, 0.95 + d); tone(1976, 0.13, 'sine', 0.03, 0.95 + d);
+      });
+    },
     unlock() { tone(392, 0.15, 'sine', 0.12); tone(523, 0.15, 'sine', 0.12, 0.15); tone(784, 0.4, 'sine', 0.12, 0.3); }
   };
 })();
@@ -5313,8 +5302,7 @@ function renderStart() {
     S = createState(rosterLabel(r.cls, r.members), mode, diff, { cls: r.cls, members: r.members });
     persist();
     lastStage = -1;
-    Sound.dispatch();
-    Sound.unlock();
+    Sound.dispatch(); // 출동음만 재생(방 해제음과 겹치지 않게)
     renderSection();
     updateHeader();
     updateMonitor();
