@@ -321,11 +321,12 @@ table.score { font-size: .74rem; margin-top: .6rem; }
 .hero { padding: 1.4rem 1.6rem 1.2rem; background: linear-gradient(135deg, #FFFFFF 0%, #F7EEF0 100%); border-top: 6px solid var(--primary); }
 .hero h2 { font-size: clamp(1.6rem, 2.8vw, 2.3rem); color: var(--primary); }
 .hero p.lead { font-size: .98rem; color: var(--ink); margin: .5rem 0; }
-.hero.intro { position: relative; isolation: isolate; background: linear-gradient(135deg, #F4DFE4 0%, #E4BBC4 100%); border-top-color: var(--danger); animation: introGlow 2s ease-in-out infinite; }
+.hero.intro { position: relative; isolation: isolate; background: linear-gradient(135deg, #F4DFE4 0%, #E4BBC4 100%); animation: introGlow 2s ease-in-out infinite, introBorder 2s ease-in-out infinite; }
 .hero.intro::before { content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none; background: linear-gradient(135deg, #EBC6CE 0%, #D48E9E 100%); opacity: 0; animation: introBlink 2s ease-in-out infinite; }
 .hero.intro .hero-tips { color: var(--ink); }
 @keyframes introBlink { 50% { opacity: .85; } }
-@keyframes introGlow { 50% { box-shadow: 0 0 0 3px rgba(196, 50, 10, .35), 0 8px 26px rgba(110, 34, 51, .3); } }
+@keyframes introGlow { 50% { box-shadow: 0 8px 26px rgba(185, 28, 28, .3); } } /* 테두리를 두꺼워 보이게 하던 바깥 고리 제거, 그림자만 */
+@keyframes introBorder { 0%, 100% { border-color: #6E2233; } 50% { border-color: #EF4444; } } /* 잠김 상태: 테두리가 버건디↔빨강으로 깜빡임 */
 .hero-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem 1rem; flex-wrap: wrap; margin-top: .5rem; }
 .hero-head h2 { margin: 0; }
 .hero-tips { margin: .4rem 0 0; padding-left: 1.2rem; columns: 2; column-gap: 2.5rem; }
@@ -475,7 +476,8 @@ table.res th { color: var(--primary); }
 .glass.result-hero.tier-warn, .glass.kgroup.lv-warn { --card-accent: #D97706; }
 .glass.result-hero.tier-bad, .glass.kgroup.lv-bad { --card-accent: var(--danger); }
 .glass.hero { border-top: 6px solid var(--card-accent); }
-.glass.hero.intro { border-right: 4px solid var(--card-accent); border-bottom: 6px solid var(--card-accent); } /* 인트로 카드: 좌·상과 대칭으로 우·하 테두리 */
+.glass.hero.intro { border: 2px solid #6E2233; } /* 인트로 카드(잠김 상태): 네 변 2px로 가늘게, 색은 introBorder로 깜빡임 */
+@media (prefers-reduced-motion: reduce) { .hero.intro, .hero.intro::before { animation: none; } .glass.hero.intro { border-color: #DC2626; } }
 .result-hero.tier-good { border-top-color: #2F855A; } .result-hero.tier-warn { border-top-color: #D97706; } .result-hero.tier-bad { border-top-color: var(--danger); }
 .glass.kgroup { border-top: 5px solid var(--card-accent); }
 </style>
