@@ -179,6 +179,11 @@ footer.foot { text-align: center; color: var(--muted); font-size: .8rem; padding
 .mm-room.current text { fill: #FFE4EA; font-weight: 700; }
 .mm-room.off rect { fill: url(#hatch); stroke: #2A56A8; stroke-dasharray: 3 3; opacity: .75; }
 .mm-room.off text { opacity: .45; }
+.mm-room .mm-ic { font-size: var(--mm-ic, 16px); }
+g.mm-room text.mm-ic { fill: #1E293B; } /* 글자형 아이콘(🗄 등)이 밝은 받침에서도 보이게 짙은 색 고정 */
+.mm-ic-bg { fill: #EAF1FC; stroke: rgba(255, 255, 255, .9); stroke-width: 1; }
+.mm-room.current .mm-ic-bg { fill: #FFF1F4; } .mm-room.cleared .mm-ic-bg { fill: #E6F7F0; }
+.mm-room.off .mm-ic-bg { opacity: .3; }
 @keyframes pulse { 50% { stroke-opacity: .35; } }
 .mm-corr { fill: #0F3070; stroke: #1F4590; }
 .mm-corr-t { font-size: var(--mm-fs, 10px); font-family: var(--sans); }
@@ -4068,9 +4073,11 @@ function renderMinimap() {
     const cls = !inPlan ? 'off' : done(id) ? 'cleared' : S && S.plan[S.idx] === id && !S.finished ? 'current' : '';
     g.setAttribute('class', 'mm-room ' + cls);
     const r = ROOM_BY_ID[id];
+    const cx = x + w / 2, icy = y + hgt * 0.38;
     g.innerHTML = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + hgt + '" rx="8"/>' +
-      '<text x="' + (x + w / 2) + '" y="' + (y + hgt / 2 - 4) + '" font-size="16">' + r.icon + '</text>' +
-      '<text x="' + (x + w / 2) + '" y="' + (y + hgt / 2 + 16) + '">' + r.short + (cls === 'cleared' ? ' ✓' : '') + '</text>';
+      '<circle class="mm-ic-bg" cx="' + cx + '" cy="' + icy + '" r="12"/>' +   // 아이콘 받침(어두운 바탕에서 아이콘이 잘 보이게)
+      '<text class="mm-ic" x="' + cx + '" y="' + icy + '" dominant-baseline="central">' + r.icon + '</text>' +
+      '<text class="mm-name" x="' + cx + '" y="' + (y + hgt * 0.8) + '">' + r.short + (cls === 'cleared' ? ' ✓' : '') + '</text>';
     svg.appendChild(g);
   });
   $('#minimap').replaceChildren(svg);
@@ -4083,7 +4090,11 @@ function fitMinimapText() {
   const w = svg.getBoundingClientRect().width;
   if (!w) return;
   const target = parseFloat(getComputedStyle($('.mon-head')).fontSize) || 10.92;
-  svg.style.setProperty('--mm-fs', (target * 342 / w).toFixed(2) + 'px');
+  const u = 342 / w; // 화면 1px당 SVG 단위
+  svg.style.setProperty('--mm-fs', (target * u).toFixed(2) + 'px');
+  const icon = Math.max(14, Math.min(20, 0.24 * 74 / u));                 // 아이콘: 방 높이에 맞춰 14~20px
+  svg.style.setProperty('--mm-ic', (icon * u).toFixed(2) + 'px');
+  svg.querySelectorAll('.mm-ic-bg').forEach((c) => c.setAttribute('r', (icon * 0.8 * u).toFixed(2))); // 받침: 아이콘의 1.6배 지름
 }
 if (window.ResizeObserver) new ResizeObserver(() => fitMinimapText()).observe(document.getElementById('minimap'));
 else window.addEventListener('resize', fitMinimapText);
