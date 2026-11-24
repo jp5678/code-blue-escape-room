@@ -343,6 +343,7 @@ table.score { font-size: .74rem; margin-top: .6rem; }
 .room-list li.off { opacity: .45; text-decoration: line-through; }
 .roster { display: grid; grid-template-columns: minmax(120px, 180px) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .member-list { display: grid; gap: .45rem; margin: .4rem 0 .5rem; }
+.roster-cls label { display: block; margin-bottom: .4rem; } /* 반 선택 상자를 첫 조원 입력칸과 같은 줄에 맞춤(조원 목록 위 여백 .4rem과 동일) */
 .member-row { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) minmax(0, 1.2fr) 2.6rem; gap: .5rem; align-items: center; }
 .member-row input[aria-invalid=true] { border-color: var(--danger); box-shadow: 0 0 0 2px var(--danger-soft); }
 .sid-msg { margin: -.1rem 0 .5rem; color: var(--danger); font-size: .85rem; font-weight: 600; }
