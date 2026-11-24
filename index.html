@@ -236,6 +236,14 @@ legend { font-weight: 700; margin-bottom: .4rem; color: var(--primary); }
 .btn:hover { filter: brightness(1.05); }
 .btn:active { transform: translateY(1px); }
 .btn.primary { background: var(--primary); color: #fff; box-shadow: 0 3px 10px rgba(110, 34, 51, .25); }
+/* 출동 버튼: 경광등처럼 버건디↔경고 빨강으로 1초 주기 깜빡임 + 빛 고리. 마우스·키보드로 고르면 멈춤 */
+.btn.btn-dispatch { animation: dispatchBlink 1s ease-in-out infinite; }
+.btn.btn-dispatch:hover, .btn.btn-dispatch:focus-visible { animation: none; background: #DC2626; box-shadow: 0 0 0 4px rgba(220, 38, 38, .3); }
+@keyframes dispatchBlink {
+  0%, 100% { background: var(--primary); box-shadow: 0 3px 10px rgba(110, 34, 51, .25), 0 0 0 0 rgba(220, 38, 38, .55); }
+  50% { background: #DC2626; box-shadow: 0 3px 10px rgba(220, 38, 38, .35), 0 0 0 7px rgba(220, 38, 38, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .btn.btn-dispatch { animation: none; background: #DC2626; } }
 .btn.gold { background: var(--gold); color: #2B1F05; box-shadow: 0 3px 10px rgba(150, 115, 40, .25); }
 .btn.ghost { background: #fff; color: var(--primary); border: 1px solid var(--line-strong); }
 .btn.danger { background: var(--danger-soft); color: var(--danger); border: 1px solid #FCA5A5; }
@@ -5288,7 +5296,7 @@ function renderStart() {
     h('div', { style: 'margin-top:1rem' }, h('div', { class: 'small' }, '이번 게임에서 열리는 구간 (수업 모드 방 3개: ' + picked.map((id) => ROOM_BY_ID[id].short).join(', ') + ' — 교수자가 바꿀 수 있음)'), roomList),
     msg,
     h('div', { class: 'actions' },
-      h('button', { class: 'btn primary', type: 'button', onclick: start }, '🚨 출동 (게임 시작)'),
+      h('button', { class: 'btn primary btn-dispatch', type: 'button', onclick: start }, '🚨 출동 (게임 시작)'),
       saved ? h('button', { class: 'btn gold', type: 'button', onclick: resume }, saved.finished ? '📊 지난 결과 보기' : '▶ 이어하기 (' + saved.team + ')') : null));
   form.addEventListener('change', drawRooms);
   $('#main').replaceChildren(hero, form);
