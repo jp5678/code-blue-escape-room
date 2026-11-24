@@ -3703,13 +3703,12 @@ const Sound = (() => {
   }
   // 모바일(iOS 등)은 손을 뗄 때(click·pointerup·touchend)만 허용하는 경우가 있어 모두 등록
   ['pointerdown', 'pointerup', 'click', 'keydown', 'touchstart', 'touchend'].forEach((ev) => document.addEventListener(ev, wake, { capture: true, passive: true }));
-  let lockLast = -Infinity;
-  let idleLast = -Infinity;
-  // 반복 경보는 오디오가 실제로 켜졌을 때만(꺼진 동안 예약하면 첫 클릭 때 한꺼번에 몰아서 울림)
-  const live = () => !muted && ctx && ctx.state === 'running';
-  // 사이렌: 음높이가 오르내리는 소리(첫 화면 대기 경보)
+  // 사이렌: 음높이가 오르내리는 소리(출동 버튼 경보)
   function siren(lo, hi, dur, vol) {
-    const c = ctx, t0 = c.currentTime;
+    if (muted) return;
+    const c = wake();
+    if (!c) return;
+    const t0 = c.currentTime;
     const osc = c.createOscillator(), g = c.createGain();
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(lo, t0);
@@ -3750,22 +3749,8 @@ const Sound = (() => {
     wrong() { tone(180, 0.3, 'square', 0.08); },
     alarm() { [0, 0.25, 0.5].forEach((d) => tone(960, 0.18, 'square', 0.14, d)); },
     click() { tone(520, 0.05, 'triangle', 0.05); },
-    // 첫 화면 대기 경보(기본 켜짐): 게임 시작 전 5초 간격 사이렌. 게임 중 잠김 경보(2음)와 소리로 구분
-    idleTick(on) {
-      if (!on || !live()) { if (!on) idleLast = -Infinity; return; }
-      const now = performance.now();
-      if (now - idleLast < 4900) return;
-      idleLast = now;
-      siren(520, 880, 1.4, 0.09);
-    },
-    // 잠김 상태 위급 배경음: 시스템이 하나라도 잠겨 있는 동안 4초 간격으로 2음 경보(낮은 음량) 반복. 호출 횟수와 무관하게 경과 시간 기준
-    lockedTick(on) {
-      if (!on || !live()) { if (!on) lockLast = -Infinity; return; }
-      const now = performance.now();
-      if (now - lockLast < 3900) return; // 1초 타이머 지연으로 5초로 밀리지 않게 여유
-      lockLast = now;
-      [0, 0.32].forEach((d, i) => tone(i ? 587 : 784, 0.26, 'square', 0.12, d));
-    },
+    // 출동 경보: 출동 버튼을 누를 때만 사이렌 1회(반복 경보 없음)
+    dispatch() { siren(520, 880, 1.4, 0.09); },
     unlock() { tone(392, 0.15, 'sine', 0.12); tone(523, 0.15, 'sine', 0.12, 0.15); tone(784, 0.4, 'sine', 0.12, 0.3); }
   };
 })();
@@ -4042,7 +4027,6 @@ function updateMonitor() {
   const esmOk = !idle && (S.finished || esmFixed());
   const emrLocked = !newsOk || !esmOk;
   document.body.classList.toggle('emr-locked', emrLocked);
-  Sound.lockedTick(emrLocked && !idle && !S.finished);
   const icon = emrLocked ? '🔒' : '✓';
   if ($('#emrIcon').textContent !== icon) $('#emrIcon').textContent = icon;
   $('#emrText').textContent = emrLocked ? 'EMR 잠김' : 'EMR 가동'; // '정상'은 환자 상태로 오해될 수 있어 시스템 상태는 '가동'으로 표기
@@ -5300,6 +5284,7 @@ function renderStart() {
     S = createState(rosterLabel(r.cls, r.members), mode, diff, { cls: r.cls, members: r.members });
     persist();
     lastStage = -1;
+    Sound.dispatch();
     Sound.unlock();
     renderSection();
     updateHeader();
@@ -5437,7 +5422,6 @@ function boot() {
   updateHeader(); // 시작 화면에서도 저장 기록이 있으면 초기화 버튼 표시
   updateMonitor();
   setInterval(tick, 1000);
-  setInterval(() => Sound.idleTick(!S && params.get('test') !== '1'), 500); // 첫 화면(게임 상태 없음)에서만 대기 경보
   window.addEventListener('beforeunload', persist);
   document.addEventListener('visibilitychange', persist);
 }
