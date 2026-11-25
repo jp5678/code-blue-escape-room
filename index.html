@@ -3672,7 +3672,42 @@ const Sound = (() => {
     return c;
   }
   // 모바일(iOS 등)은 손을 뗄 때(click·pointerup·touchend)만 허용하는 경우가 있어 모두 등록
-  ['pointerdown', 'pointerup', 'click', 'keydown', 'touchstart', 'touchend'].forEach((ev) => document.addEventListener(ev, wake, { capture: true, passive: true }));
+  ['pointerdown', 'pointerup', 'click', 'keydown', 'touchstart', 'touchend'].forEach((ev) => document.addEventListener(ev, () => { wake(); sirenTick(); }, { capture: true, passive: true }));
+  /* 시작 화면 대기 경보 '삐–웅 삐–웅'(2음 사이렌): 출동할 때까지 반복.
+   * 오디오가 실제로 재생 가능할 때(running)만 한 주기씩 예약 → 차단·음소거 동안 경보가 쌓였다가 한꺼번에 울리지 않음 */
+  let sirenOn = false, sirenTimer = null, sirenUntil = 0;
+  const sirenNodes = new Set();
+  function sirenNote(t0, f1, f2, dur) {
+    const c = ctx;
+    const osc = c.createOscillator(), g = c.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(f1, t0);
+    osc.frequency.linearRampToValueAtTime(f2, t0 + dur);          // '웅'은 음이 살짝 내려감
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.09, t0 + 0.04);
+    g.gain.setValueAtTime(0.09, t0 + dur - 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g).connect(c.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+    const node = { osc, g };
+    sirenNodes.add(node);
+    osc.onended = () => sirenNodes.delete(node);
+  }
+  function sirenTick() {
+    if (!sirenOn || muted || !ctx || ctx.state !== 'running') return;
+    const now = ctx.currentTime;
+    if (sirenUntil > now + 0.25) return;                           // 다음 주기가 이미 예약됨
+    const t0 = Math.max(now + 0.02, sirenUntil);
+    sirenNote(t0, 960, 960, 0.42);                                 // 삐 (높은음)
+    sirenNote(t0 + 0.5, 740, 660, 0.42);                           // 웅 (낮은음, 살짝 하강)
+    sirenUntil = t0 + 1.0;
+  }
+  function sirenSilence() {                                        // 예약된 경보음을 즉시 끔
+    const c = ctx;
+    sirenNodes.forEach(({ osc, g }) => { try { if (c) { g.gain.cancelScheduledValues(c.currentTime); g.gain.setValueAtTime(0.0001, c.currentTime); } osc.stop(); } catch (err) { /* 이미 끝난 음 */ } });
+    sirenNodes.clear();
+    sirenUntil = 0;
+  }
   function tone(freq, dur, type, vol, delay) {
     if (muted) return;
     const c = wake();
@@ -3694,6 +3729,7 @@ const Sound = (() => {
     setMuted(v) {
       muted = !!v;
       storage.set(PREF_KEY, Object.assign({}, storage.get(PREF_KEY, {}), { muted }));
+      if (muted) sirenSilence();
       if (!muted) { tone(660, 0.12, 'sine', 0.15); tone(880, 0.16, 'sine', 0.15, 0.12); } // 소리 켜기 확인음: 버튼으로 바로 시험 가능
     },
     correct() { tone(660, 0.12, 'sine', 0.15); tone(880, 0.12, 'sine', 0.15, 0.12); tone(1320, 0.25, 'sine', 0.12, 0.24); },
@@ -3708,7 +3744,21 @@ const Sound = (() => {
         tone(988, 0.13, 'square', 0.07, 0.95 + d); tone(1976, 0.13, 'sine', 0.03, 0.95 + d);
       });
     },
-    unlock() { tone(392, 0.15, 'sine', 0.12); tone(523, 0.15, 'sine', 0.12, 0.15); tone(784, 0.4, 'sine', 0.12, 0.3); }
+    unlock() { tone(392, 0.15, 'sine', 0.12); tone(523, 0.15, 'sine', 0.12, 0.15); tone(784, 0.4, 'sine', 0.12, 0.3); },
+    // 시작 화면 대기 경보: 켜기/끄기
+    startSiren() {
+      if (sirenOn) return;
+      sirenOn = true;
+      ensure();
+      sirenTimer = setInterval(sirenTick, 250);
+      sirenTick();
+    },
+    stopSiren() {
+      sirenOn = false;
+      if (sirenTimer) { clearInterval(sirenTimer); sirenTimer = null; }
+      sirenSilence();
+    },
+    sirenActive: () => sirenOn
   };
 })();
 
@@ -4388,6 +4438,7 @@ function displayOptions(f, key, puz) {
 }
 
 function renderSection() {
+  Sound.stopSiren(); // 시작 화면 대기 경보는 게임 화면에서 울리지 않음
   const room = currentRoom();
   const head = h('section', { class: 'room-head glass' },
     h('div', { class: 'row' },
@@ -4839,6 +4890,7 @@ function confetti() {
     h('i', { style: `left:${(i * 37) % 100}%;background:${colors[i % 5]};animation-delay:${(i % 9) * 0.12}s;animation-duration:${2.2 + (i % 5) * 0.35}s;transform:rotate(${i * 23}deg)` })));
 }
 function renderResult() {
+  Sound.stopSiren();
   const r = resultSummary();
   const secTable = h('table', { class: 'res' },
     h('thead', {}, h('tr', {}, h('th', {}, '구간'), h('th', {}, '소요 시간'), h('th', {}, '정답률'), h('th', {}, '힌트'))),
@@ -5263,12 +5315,14 @@ function renderStart() {
     S = createState(rosterLabel(r.cls, r.members), mode, diff, { cls: r.cls, members: r.members });
     persist();
     lastStage = -1;
+    Sound.stopSiren();
     Sound.dispatch(); // 출동음만 재생(방 해제음과 겹치지 않게)
     renderSection();
     updateHeader();
     updateMonitor();
   };
   const resume = () => {
+    Sound.stopSiren();
     resumeState(saved);
     lastStage = Math.floor(S.deterMax || 0);
     if (S.finished) renderResult(); else renderSection();
@@ -5300,6 +5354,7 @@ function renderStart() {
       saved ? h('button', { class: 'btn gold', type: 'button', onclick: resume }, saved.finished ? '📊 지난 결과 보기' : '▶ 이어하기 (' + saved.team + ')') : null));
   form.addEventListener('change', drawRooms);
   $('#main').replaceChildren(hero, form);
+  Sound.startSiren(); // 위급함 표시: 출동(또는 이어하기)할 때까지 '삐–웅' 경보 반복(첫 조작부터 들림)
   drawRooms();
   renderMinimap();
   setTimeout(() => roster.focus(), 50);
