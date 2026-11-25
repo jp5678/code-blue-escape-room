@@ -3736,13 +3736,20 @@ const Sound = (() => {
     wrong() { tone(180, 0.3, 'square', 0.08); },
     alarm() { [0, 0.25, 0.5].forEach((d) => tone(960, 0.18, 'square', 0.14, d)); },
     click() { tone(520, 0.05, 'triangle', 0.05); },
-    // 출동음(1회): ① 원내 방송 차임 '딩-동' → ② 고우선순위 의료 경보 박자 '삐삐삐 – 삐삐'(IEC 60601-1-8의 3+2 펄스 패턴)
+    // 출동음(1회): 병원 호출기(페이저) '삐빅 삐빅 – 삐빅 삐빅'(약 1.3초)
     dispatch() {
-      tone(784, 0.55, 'sine', 0.16); tone(1568, 0.35, 'sine', 0.04);            // 딩 (G5 + 배음)
-      tone(523, 0.75, 'sine', 0.16, 0.3); tone(1046, 0.45, 'sine', 0.04, 0.3);  // 동 (C5 + 배음)
-      [0, 0.17, 0.34, 0.68, 0.85].forEach((d) => {                              // 삐삐삐 – 삐삐
-        tone(988, 0.13, 'square', 0.07, 0.95 + d); tone(1976, 0.13, 'sine', 0.03, 0.95 + d);
-      });
+      if (muted) return;
+      const c = wake();
+      if (!c) return;
+      const t0 = c.currentTime + 0.02;
+      const beep = (t, f) => {
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = 'square'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + 0.005);
+        g.gain.setValueAtTime(0.07, t + 0.07); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+        o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.09);
+      };
+      [0, 0.3, 0.75, 1.05].forEach((d) => { beep(t0 + d, 2600); beep(t0 + d + 0.11, 3100); }); // 삐(2600Hz)·빅(3100Hz) × 2쌍, 쉬고 × 2쌍
     },
     unlock() { tone(392, 0.15, 'sine', 0.12); tone(523, 0.15, 'sine', 0.12, 0.15); tone(784, 0.4, 'sine', 0.12, 0.3); },
     // 시작 화면 대기 경보: 켜기/끄기
