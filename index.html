@@ -4956,7 +4956,29 @@ function savePng() {
     const shift = peopleRows.length * 30;
     const course = S.course || [];
     const chartH = course.length >= 2 ? 230 : 0;
-    const H = 540 + shift + chartH + r.sections.length * rowH + Math.ceil(r.chapters.length / 2) * rowH;
+    const serifF = "'Noto Serif KR', serif", sansF = "'Noto Sans KR', sans-serif";
+    // 긴 문장 자동 줄바꿈(띄어쓰기 기준, 너무 긴 단어는 글자 단위). 다짐(최대 80자)이 폭을 넘어 하단 출처와 겹치던 문제 해결
+    const measure = document.createElement('canvas').getContext('2d');
+    const wrap = (text, font, maxW) => {
+      measure.font = font;
+      const lines = [];
+      let cur = '';
+      text.split(' ').forEach((word) => {
+        const tryLine = cur ? cur + ' ' + word : word;
+        if (measure.measureText(tryLine).width <= maxW) { cur = tryLine; return; }
+        if (cur) lines.push(cur);
+        cur = '';
+        [...word].forEach((ch) => { if (measure.measureText(cur + ch).width > maxW && cur) { lines.push(cur); cur = ch; } else cur += ch; });
+      });
+      if (cur) lines.push(cur);
+      return lines;
+    };
+    const titleLines = wrap('우리가 될 간호사: ' + r.persona.title, '700 21px ' + sansF, W - 120);
+    const lineLines = r.persona.line ? wrap('「' + r.persona.line + '」', '600 21px ' + serifF, W - 120) : [];
+    const personaY = 472 + shift + chartH + r.sections.length * rowH + Math.ceil(r.chapters.length / 2) * rowH; // 다짐 첫 줄 기준선
+    const lastY = personaY + (titleLines.length - 1) * 30 + (lineLines.length ? 34 + (lineLines.length - 1) * 32 : 0);
+    const footerY = lastY + 46;                                    // 출처는 다짐 마지막 줄 아래에 띄워 둠
+    const H = footerY + 40;
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const c = cv.getContext('2d');
@@ -5026,11 +5048,12 @@ function savePng() {
       txt(ch.accuracy === null ? '—' : ch.accuracy + '%', x + 400, yy, '600 17px ' + mono, '#2A2D33');
     });
     y += Math.ceil(r.chapters.length / 2) * rowH + 30;
-    txt('우리가 될 간호사: ' + r.persona.title, 60, y, '700 21px ' + sans, '#7A5A20');
-    if (r.persona.line) txt('「' + r.persona.line + '」', 60, y + 34, '600 21px ' + serif, '#2A2D33');
+    titleLines.forEach((ln, i) => txt(ln, 60, y + i * 30, '700 21px ' + sans, '#7A5A20'));
+    const ly = y + (titleLines.length - 1) * 30 + 34;
+    lineLines.forEach((ln, i) => txt(ln, 60, ly + i * 32, '600 21px ' + serif, '#2A2D33'));
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.font = '500 16px ' + sans;
-    txt(DATA.meta.footer, W - 60 - c.measureText(DATA.meta.footer).width, H - 40, '500 16px ' + sans, '#5F636B');
+    txt(DATA.meta.footer, W - 60 - c.measureText(DATA.meta.footer).width, footerY, '500 16px ' + sans, '#5F636B');
     const a = document.createElement('a');
     const m0 = Array.isArray(S.members) && S.members[0];
     const who = m0 ? [S.cls, m0.sid, m0.name + (S.members.length > 1 ? '외' + (S.members.length - 1) + '명' : '')].join('_') : S.team;
